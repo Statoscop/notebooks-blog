@@ -1,0 +1,183 @@
+---
+title: "Fonctionnement et performances de across dans dplyr"
+author: "Antoine"
+date: "01/06/2021"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+library(microbenchmark)
+library(dplyr)
+library(palmerpenguins)
+```
+
+A la sortie de l'été dernier, j'ai réalisé une [note sur mon blog personnel](https://antoinesir.rbind.io/post/fonctionnement-de-across-dans-dplyr/) sur un élément important d'une mise à jour majeure de dplyr : `across()`, un nouveau verbe pour réaliser des opérations sur plusieurs colonnes. Dans cette note, on utilisait la version `1.0.2` de `dplyr` et on comparait `across` aux verbes équivalents que cela devait remplacer (fonctions indexées par `_at`, `_if` et `_all`) . On constatait une moins bonne performance d' `across` en termes de temps d'exécution. Cet élément était bien connu des développeurs de RStudio et a été constamment pris en compte dans les différentes mises à jour. On reprend ici cette note en la mettant à jour avec la version `1.0.6` de `dplyr` disponible à ce jour pour voir où se place désormais `across` en termes de temps d'exécution.
+
+[TOC]
+
+Si vous voulez balayer plus largement les différents éléments de la mise à jour de `dplyr`, vous pouvez vous rendre sur [le site du tidyverse](https://www.tidyverse.org/blog/2020/06/dplyr-1-0-0/) (en anglais) ou sur [cet article du blog de ThinkR](https://thinkr.fr/hey-quoi-de-neuf-dplyr-le-point-sur-la-v1/#La_fonction_de_calcul_avec_conditions_sur_les_variables_across()) (en français) qui en présentent les changements majeurs. 
+
+# `across()`, ça marche comment?  
+
+## Syntaxe de base  
+
+Le verbe `across()` vise à remplacer toutes les fonctions suffixées par `_if`, `_at` et `_all`. Il regroupe ces méthodes dans une seule et permet ainsi de les associer, ce qui n'était pas possible avant. Il s'utilise dans `mutate` et `summarise`. La syntaxe associée à ce verbe est la suivante :   
+
+```{r eval=FALSE, include=TRUE}
+across(.cols, .fns)
+```
+ Dans laquelle :  
+ - Les colonnes `.cols` peuvent être sélectionnées en utilisant la même syntaxe que pour la méthode `vars()` (nom des variables, `starts_with`, `end_with`, `contains`,...), mais aussi avec des conditions rentrées dans `where()` qui sélectionneront de la même manière que le faisaient les fonctions suffixées par `_if`.  
+ - La fonction `.fns` est définie comme auparavant (le nom de la fonction ou sa définition "à la volée" avec `~ my_fun(.)`).  
+ 
+## Quelques exemples  
+
+Pour changer, on utilise pour ces petits exemples la table `penguins` promue par [Allison Horst](https://github.com/allisonhorst/palmerpenguins) pour remplacer l'usage de la table iris. Vous pouvez l'obtenir depuis le package `palmerpenguins` sur le CRAN. À partir de cette table, l'instruction visant à sortir la moyenne de toutes les variables numériques s'écrivait auparavant :  
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+penguins %>% summarise_if(is.numeric, mean, na.rm = TRUE)
+```
+
+Elle se réécrit avec `across()` en utilisant `where()` :  
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+penguins %>% summarise(across(where(is.numeric), mean, na.rm = TRUE))
+```
+
+Si l'on souhaite sélectionner à partir du nom des variables, la nouvelle syntaxe est la suivante :  
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Ancienne version
+penguins %>% summarise_at(vars(matches("bill*|flipper*")), mean, na.rm = TRUE)
+
+# Avec across()
+penguins %>% summarise(across(matches("bill*|flipper*"), mean, na.rm = TRUE))
+```
+
+On note également qu'on peut combiner dorénavant les sélections sur les types des colonnes et sur leur nom dans une seule instruction `across()`, ce qui n'était pas possible avant. Pour enlever les années des moyennes numériques, on peut par exemple écrire :   
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+penguins %>% summarise(across(where(is.numeric) & -contains("year"), mean, na.rm = TRUE))
+```
+
+Enfin, le paramètre `.names` de `across()` est également très pratique et permet notamment dans une instruction `mutate()` de créer de nouvelles colonnes nommées à partir des anciennes auxquelles on peut se référer avec `.col`. Par exemple, si je veux créer deux nouvelles colonnes passant les informations sur le bec en pouces mais en conservant les anciennes colonnes, je peux écrire :  
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+penguins %>% 
+  mutate(across(starts_with("bill"), ~ . * 0.04, .names = "pouces_{.col}")) %>% 
+  select(contains("bill")) %>% head(5)
+```  
+
+# `across()`, ça tourne comment?  
+À la sortie de la mise à jour de `dplyr`, il avait été signalé que la méthode `across()` impliquerait peut-être de légères pertes en termes de vitesse d'exécution par rapport aux anciennes méthodes `_at`, `_if` et `_all`. On a mis en évidence ce problème avec la version `1.0.2` de dplyr dans [la première version de cet article](https://antoinesir.rbind.io/post/fonctionnement-de-across-dans-dplyr/). Sur ce même modèle, on va comparer les instructions `_if` et `_at` d'un summarise groupé avec leurs équivalents dans `across()` pour différentes tailles d'échantillons et de groupes.   
+
+## Résultats de la version 1.0.6  
+Le tibble utilisé a le format suivant, ici pour 100 lignes et deux groupes :  
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+nbrow <- 100
+nbgpe <- 2
+as_tibble(data.frame(x1 = rnorm(nbrow), x2 =  rnorm(nbrow), 
+                     x3 = runif(nbrow), x4 = runif(nbrow),
+                     y = as.factor(sample(floor(nbgpe), replace = TRUE))
+                               )) %>% 
+  arrange(x1) %>% 
+  mutate(across(where(is.numeric), ~ round(., 2)))
+```
+
+
+Les différentes instructions testées sont les suivantes :  
+```{r eval=FALSE, include=TRUE}
+# summarise_if  
+data %>% group_by(y) %>% summarise_if(is.numeric, mean) 
+
+# across + where()  
+data %>% group_by(y) %>% summarise(across(where(is.numeric), mean))  
+
+# summarise_at  
+data %>% group_by(y) %>% summarise_at(vars(starts_with("x")), mean) 
+
+# across + starts_with()  
+data %>% group_by(y) %>% summarise(across(starts_with("x"), mean))
+```
+
+Les résultats du `microbenchmark()` pour les différentes combinaisons de nombres de groupes et de lignes sont présentés dans un graphique qui représente la distribution du temps d’exécution des 10 occurences testées pour chaque méthode :     
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(microbenchmark)
+library(ggplot2)
+test_group_by <- function(nbrow, nbgpe){
+  test <- as_tibble(data.frame(x1 = rnorm(nbrow), x2 =  rnorm(nbrow), 
+                               x3 = runif(nbrow), x4 = runif(nbrow),
+                               y = as.factor(sample(floor(nbgpe), 
+                                                    replace = TRUE))
+                               ))
+  return(autoplot(
+    microbenchmark::microbenchmark(times = 10, unit="ms", 
+                                   summarise_if = test %>% group_by(y) %>% summarise_if(is.numeric, mean),
+                                   "across + \nwhere()" = test %>% group_by(y) %>% summarise(across(where(is.numeric), mean)),
+                                   summarise_at = test %>% group_by(y) %>% summarise_at(vars(starts_with("x")), mean),
+                                   "across + \nstarts_with()" = test %>% group_by(y) %>% summarise(across(starts_with("x"), mean))
+                                   ),
+    log = FALSE)
+    + ggtitle(paste0(nbrow, " lignes, ", nbgpe, " groupes")) + expand_limits(y = 0))
+}
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+x <- 100
+y <- 0.5
+for (i in seq(1, 3)){
+  x <- x * 10
+  y <- y * 10
+  assign(paste0("plot", i, sep = ""), test_group_by(x, y))
+}
+x <- 100
+y <- 50
+for (i in seq(4, 6)){
+  x <- x * 10
+  y <- y * 10
+  assign(paste0("plot", i, sep = ""), test_group_by(x, y))
+}
+
+library(gridExtra)
+grid.arrange(plot1, plot4, plot2, plot5, plot3, plot6, ncol = 2, heights = c(14, 14, 14))
+
+```
+
+Sur nos exemples, il semblerait qu'`across` ait complètement rattrapé son retard sur ses équivalents `_at`, `_if` et `_all`.  
+
+## Résultats avec la version 1.0.0  
+
+Pour en être convaincu, on peut refaire tourner cette même comparaison avec la version `1.0.0` de `dplyr` :  
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+chemin_dev = "~/R/x86_64-pc-linux-gnu-library/4.1.dev"
+detach(package:dplyr)
+library(dplyr, lib = chemin_dev)
+x <- 100
+y <- 0.5
+for (i in seq(1, 3)){
+  x <- x * 10
+  y <- y * 10
+  assign(paste0("plot", i, sep = ""), test_group_by(x, y))
+}
+x <- 100
+y <- 50
+for (i in seq(4, 6)){
+  x <- x * 10
+  y <- y * 10
+  assign(paste0("plot", i, sep = ""), test_group_by(x, y))
+}
+
+library(gridExtra)
+grid.arrange(plot1, plot4, plot2, plot5, plot3, plot6, ncol = 2, heights = c(14, 14, 14))
+
+```
+
+On constate bien que dans sa première version, `across` connaissait de bien moins bonnes performances, en particulier sur les dataframes avec beaucoup de lignes et/ou beaucoup de groupes. Les mises à jour successives ont donc bien permis de combler ces problèmes de performance et c'est une excellente nouvelle car au niveau de la syntaxe, nous, on adore!  
+
+C'est tout pour aujourd'hui! Comme d'habitude vous pouvez retrouver le fichier Rmarkdown ayant servi à générer cette note sur le [github de Statoscop](https://github.com/Statoscop/notebooks-blog).
