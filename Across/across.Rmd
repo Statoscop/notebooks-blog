@@ -155,6 +155,9 @@ Sur nos exemples, il semblerait qu'`across` ait complètement rattrapé son reta
 Pour en être convaincu, on peut refaire tourner cette même comparaison avec la version `1.0.0` de `dplyr` :  
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+# ! Ne va pas tourner sur votre poste si vous n'installez
+# pas la version 1.0.0 de dplyr dans le chemin que vous devez
+# renseigner ensuite dans `chemin_dev`
 chemin_dev = "~/R/x86_64-pc-linux-gnu-library/4.1.dev"
 detach(package:dplyr)
 library(dplyr, lib = chemin_dev)
