@@ -125,5 +125,8 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# R
+*.Rhistory
+
 # Pyre type checker
 .pyre/
