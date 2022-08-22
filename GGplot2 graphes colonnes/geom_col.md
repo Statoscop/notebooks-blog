@@ -69,30 +69,45 @@ Il est maintenant bien  plus facile de situer chaque pays par rapport aux autres
 
 ## Mise en forme des axes  
 
-Il reste que la lecture des pays n'est pas facile ainsi, on préfère donc intervertir les axes des `x` et des `y`. Cela se fait très simplement avec `coord_flip()`. On en profite également pour ajuster la taille des labels et ajouter les titres des axes dans `labs()`. Enfin, on fait apparaître la part de dépenses en pourcentage sur l'axe correspondant avec l'instruction `scale_y_continuous` de `ggplot2` et la fonction `percent` du package `scales` : 
+Avec l'instruction `labs`, on définit tout d'abord les titres de nos axes ainsi que le titre général du graphique. Puis, dans `scale_y_continuous`, on met en forme l'axe représentant les parts de dépenses de santé :  
+- avec le paramètre `labels` on fait apparaître les étiquettes sous forme de pourcentage grâce à la fonction `scales::percent()`.  
+- avec le paramètre `limits` on fait en sorte que les pourcentages affichés aillent jusqu'à 1, de manière à ce que le lecteur ait une représentation plus juste de ce que serait la part de dépenses restantes financées par les patients ou des organismes d'assurance privés.  
+- le paramètre `expand = c(0, 0)` permet de supprimer les espaces avant et après les valeurs minimum et maximum de notre variable d'intérêt.  
+Pour mieux lire les noms des pays, on intervertit l'axe des ordonnées et des abscisses avec l'instruction `coord_flip()` pour avoir un graphique en barres horizontales. Enfin, on règle la taille des labels des éléments de x et de y.  
 
 
 ```r
 df_health %>% 
   ggplot(aes(x = reorder(country, gvt_health_exp_10), y = gvt_health_exp_10)) + 
-  geom_col(width = 0.2) + 
-  coord_flip() + 
-  theme(axis.text.y = element_text(size = 6)) + 
+  geom_col(width = 0.2) +
   labs(x = "Pays",
-       y  = "Part de dépenses de santé") + 
-  scale_y_continuous(labels = ~ scales::percent(., accuracy = 1)) -> plot_health
+       y  = "Part de dépenses de santé",
+       title = "Part des dépenses de santé financées par l'Etat\n dans les 30 pays les plus peuplés") + 
+  scale_y_continuous(labels = ~ scales::percent(., accuracy = 1),
+                     limits = c(0, 1), expand = c(0, 0)) + 
+  coord_flip() -> plot_health
 
-plot_health
+plot_health  + 
+  theme(axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 7))
 ```
 
 ![](geom_col_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
-## Utilisation d'un thème de ggplot2  
+## Utilisation d'un thème
 
-Pour l'affichage graphique il est possible de régler chaque élément du graphgique comme on le souhaite. Le plus facile reste cependant d'utiliser les nombreux thèmes existants disponibles. Pour les utiliser il suffit d'ajouter l'instruction `theme_*` à la suite de votre plot. Le thème par défaut dans ggplot2 est `theme_gray`. On vous présente le résultat donné par quelques autres :  
+Pour l'affichage graphique il est possible de régler chaque élément du graphique comme on le souhaite. Le plus facile reste cependant d'utiliser les nombreux thèmes existants disponibles, par défaut dans `ggplot2` ou en installant d'autres libraires, comme `ggthemes`. Pour les utiliser il suffit d'ajouter l'instruction `+ theme_*()` à la suite de votre plot. Le thème par défaut dans ggplot2 est `theme_gray`. On vous présente le résultat donné par `theme_economist`, disponible dans `ggthemes`, qui reprend la charte graphique du magasine _The Economist_. On ajuste également la taille des labels à ce nouveau thème.  
 
-<img src="geom_col_files/figure-html/unnamed-chunk-5-1.png" width="50%" /><img src="geom_col_files/figure-html/unnamed-chunk-5-2.png" width="50%" />
 
-<img src="geom_col_files/figure-html/unnamed-chunk-6-1.png" width="50%" /><img src="geom_col_files/figure-html/unnamed-chunk-6-2.png" width="50%" />
+```r
+library(ggthemes)
+
+plot_health + theme_economist() + 
+  theme(axis.text.x = element_text(size = 7),
+        axis.text.y = element_text(size = 8))
+```
+
+![](geom_col_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
 
 C'est la fin de cet article! N'hésitez pas à [visiter notre site](https://www.statoscop.fr) et à nous suivre sur [Twitter](https://twitter.com/stato_scop) et [Linkedin](https://www.linkedin.com/company/statoscop). Pour retrouver l'ensemble du code ayant servi à générer cette note, vous pouvez vous rendre sur le [github de Statoscop](https://github.com/Statoscop/notebooks-blog).  
