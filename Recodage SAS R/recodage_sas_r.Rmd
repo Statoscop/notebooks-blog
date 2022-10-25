@@ -1,0 +1,42 @@
+---
+title: "Recodage de SAS à R"
+author: "Antoine Sireyjol"
+date: '2022-10-24'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+keywords : recodage migration SAS R dplyr data.table
+
+
+# Options de recodage  
+
+## Base R  
+le - "risqué"  
+
+## Tidyverse  
+le + populaire    
+
+## data.table  
+le + performant  
+
+## Notre conseil  
+
+
+# Organisation du travail  
+
+## Projets  
+## Renv   
+## Git   
+
+# Accompagnement de la transition   
+## En interne  
+se mettre d'accord sur des bonnes pratiques de codage
+
+## Avec un prestataire  
+
+formations, recodage pas à pas, associer les équipes au travail
+
+
+
