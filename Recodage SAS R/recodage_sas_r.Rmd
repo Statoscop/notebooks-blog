@@ -1,42 +1,113 @@
----
-title: "Recodage de SAS à R"
-author: "Antoine Sireyjol"
-date: '2022-10-24'
+--- 
+title: "Migration de SAS vers R"  
+author: "Antoine Sireyjol"  
+date: '2022-10-24' 
 output: 
-  html_document:
-    toc: true
-    toc_float: true
----
-keywords : recodage migration SAS R dplyr data.table
+  html_document: 
+    toc: true 
+    toc_float: true 
+--- 
 
+L'utilisation
+du logiciel d'analyses statistiques SAS est encore assez ancrée dans certaines
+administrations publiques et grosses entreprises, malgré la concurrence de deux
+logiciels open-source offrant des performances souvent supérieures : R et
+Python. La migration vers un nouveau langage présente en effet un certain nombre
+de difficultés, mais le jeu en vaut la chandelle! Nous proposons dans cet
+article quelques principes pour recoder ses scripts SAS en R et assurer une
+transition vers l'open-source la plus simple possible.  
 
-# Options de recodage  
+# Options de recodage en R   
+Une des difficultés de R est aussi une de ses forces
+: le grand nombre de possibilités qui s'offrent à vous pour coder. Le CRAN (pour
+_Comprehensive R Archive Network_) comprend un nombre impressionnant de packages
+(+ de 18000!). Dans ces conditions, il est important de se mettre d'accord a
+minima sur l'orientation que vous souhaitez prendre, afin d'assurer une certaine
+homogénéité entre les différents membres de vos équipes. Ces "règles" peuvent
+bien sûr varier d'une équipe à l'autre, en fonction de ses besoins spécifiques.
+On présente ici trois des options les plus couramment utilisées en statistiques
+: base R, le tidyverse et data.table. On ne rentre pas dans le détail de la
+syntaxe de chacune de ces options mais vous pouvez approfondir cet aspect en
+lisant notre [article qui compare les performances de ces trois
+options](https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html).  
 
-## Base R  
-le - "risqué"  
+## Base R   
+Base R désigne toutes les fonctions natives de R, qui sont chargées
+par défaut au lancement du logiciel. Pour l'analyse de données, on s'appuiera
+notamment sur le format `data.frame`. L'utilisation exclusive de base R aurait
+l'avantage de ne pas faire dépendre votre code d'autres packages et donc de lui
+assurer une certaine stabilité. Cependant, pour l'analyse de données, la syntaxe
+sera vite verbeuse et peu lisible pour des non initiés. De plus, pour des
+traitements de données plus complexes, vous ne trouverez pas forcément ce qu'il
+vous faut dans ce que propose base R. Enfin, cette option est beaucoup moins
+performante en termes de vitesse d'exécution que les deux que nous vous
+présentons ensuite.  
 
-## Tidyverse  
-le + populaire    
+## Tidyverse   
+Le tidyverse est un [ensemble de
+packages](https://www.tidyverse.org/) destinés au traitement de données, du
+nettoyage à l'analyse et la datavisualisation. En particulier, le package
+`dplyr` propose des fonctions de haut niveau couvrant la très grande majorité
+des besoins lors de la manipulation des données. Ces fonctions, chaînées avec
+l'opérateur "pipe" (`%>%` du package `magritr` ou `|>` de base R depuis la
+version la plus récente), offrent un code très lisible et intuitif à écrire.
+Enfin, ce code est optimisé et offre de [bonnes
+performances](https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html).
+L'inconvénient du tidyverse est sans doute qu'il concerne beaucoup de packages
+et que ces packages ont chacun également un certain nombre de dépendances à
+d'autres packages. Cependant, le fait qu'il soit maintenu par des équipes de
+RStudio, est de nature à rassurer sur la stabilité de ces packages. En général
+on ne recommande de toute façon pas de charger le tidyverse dans son ensemble
+mais les packages de celui-ci que vous souhaitez utiliser.  
 
 ## data.table  
-le + performant  
+Des trois options, `data.table` est la plus performante. Ce
+package utilise un format concurrent du `data.frame` de base R, le `data.table`,
+qui optimise la vitesse d'exécution des instructions. Ce package a aussi
+l'avantage de ne dépendre d'aucun autre package, ce qui est de nature à rassurer
+sur sa stabilité dans le temps. En contrepartie, il offre une syntaxe sans doute
+moins lisible pour les non-initiés, en particulier pour des opérations plus
+complexes.  
 
 ## Notre conseil  
+Dans la majorité des cas, le `tidyverse` et en particulier
+`dplyr` sera le choix le plus adapaté. Pour des utilisateurs de SAS, en
+particulier pour ceux connaissant un peu de SQL, les fonctions à utiliser seront
+plus intuitives. Cette option bénéficie en outre d'une communauté d'utilisateurs
+très importante permettant de trouver facilement des réponses à vos
+interrogations en ligne. De plus, la vitesse d'exécution sera souvent au moins
+aussi bonne que celle de SAS. Si l'activité concernée par le recodage a un gros
+enjeu de temps d'exécution et moins de lisibilité du code, c'est sans doute vers
+`data.table` qu'il faudra se tourner. Il est bien sûr possible d'opter pour une
+solution "hybride" avec une partie des codes utilisant une option plutôt que
+l'autre, à condition de bien clarifier cela en amont.  
 
+# Organisation du travail de recodage en R  
+Une fois que le choix de l'option de
+recodage a été fait, vous pouvez spécifier vos reccommandations dans un document
+listant les "bonnes pratiques" de codage en R dans le cadre de votre activité.
+Cela pourra servir à encadrer et accompagner le travail des développeurs R et
+uniformiser autant que possible les différentes manières de coder. En plus de
+cela, nous recommandons quelques outils simples à adopter pour tirer le meilleur
+de l'éco-système R.    
 
-# Organisation du travail  
+## Les projets RStudio  
+Les [projets
+RStudio](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-Projects)
+sont des fichiers associés à un dossier de travail que vous aurez créés. Ils
+permettent de spécifier les chemins vers vos données ou vers le dossier des
+sorties que vous voulez créer de manière __relative__ à ce dossier parent. Leur
+utilisation permet de bannir de vos scripts l'utilisation de chemins spécifiques
+à votre machine, tels que `C://Users/antoine/Documents/Mon_projet/data/ma_base.csv`  C'est donc un premier pas vers la création d'un dossier de travail contenant des scripts réutilisables
+en l'état par vos collègues, que ce soit ceux qui travaillent dans votre équipoe
+ou ceux qui vous succéderont.  
 
-## Projets  
-## Renv   
-## Git   
-
-# Accompagnement de la transition   
+## Renv  
+## Git
+# Accompagnement de la migration de SAS vers R  
 ## En interne  
 se mettre d'accord sur des bonnes pratiques de codage
-
 ## Avec un prestataire  
-
 formations, recodage pas à pas, associer les équipes au travail
-
-
-
+Et les perspectives : a   pplication RShiny, automatisation des rapports avec
+Rmarkdown?
