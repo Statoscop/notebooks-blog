@@ -1523,26 +1523,19 @@ principes pour recoder ses scripts SAS en R et assurer une transition
 vers l’open-source la plus simple possible.</p>
 <div id="options-de-recodage-en-r" class="section level1">
 <h1>Options de recodage en R</h1>
-<dl>
-<dt>Une des difficultés de R est aussi une de ses forces</dt>
-<dd>
-le grand nombre de possibilités qui s’offrent à vous pour coder. Le CRAN
-(pour <em>Comprehensive R Archive Network</em>) comprend un nombre
+<p>Une des difficultés de R est aussi une de ses forces : le grand
+nombre de possibilités qui s’offrent à vous pour coder. Le CRAN (pour
+<em>Comprehensive R Archive Network</em>) comprend un nombre
 impressionnant de packages (+ de 18000!). Dans ces conditions, il est
 important de se mettre d’accord a minima sur l’orientation que vous
 souhaitez prendre, afin d’assurer une certaine homogénéité entre les
 différents membres de vos équipes. Ces “règles” peuvent bien sûr varier
 d’une équipe à l’autre, en fonction de ses besoins spécifiques. On
 présente ici trois des options les plus couramment utilisées en
-statistiques
-</dd>
-<dd>
-base R, le tidyverse et data.table. On ne rentre pas dans le détail de
-la syntaxe de chacune de ces options mais vous pouvez approfondir cet
-aspect en lisant notre <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">article
-qui compare les performances de ces trois options</a>.
-</dd>
-</dl>
+statistiques : base R, le tidyverse et data.table. On ne rentre pas dans
+le détail de la syntaxe de chacune de ces options mais vous pouvez
+approfondir cet aspect en lisant notre <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">article
+qui compare les performances de ces trois options</a>.</p>
 <div id="base-r" class="section level2">
 <h2>Base R</h2>
 <p>Base R désigne toutes les fonctions natives de R, qui sont chargées
@@ -1590,26 +1583,26 @@ complexes.</p>
 <div id="notre-conseil" class="section level2">
 <h2>Notre conseil</h2>
 <p>Dans la majorité des cas, le <code>tidyverse</code> et en particulier
-<code>dplyr</code> sera le choix le plus adapaté. Pour des utilisateurs
-de SAS, en particulier pour ceux connaissant un peu de SQL, les
-fonctions à utiliser seront plus intuitives. Cette option bénéficie en
-outre d’une communauté d’utilisateurs très importante permettant de
-trouver facilement des réponses à vos interrogations en ligne. De plus,
-la vitesse d’exécution sera souvent au moins aussi bonne que celle de
-SAS. Si l’activité concernée par le recodage a un gros enjeu de temps
-d’exécution et moins de lisibilité du code, c’est sans doute vers
-<code>data.table</code> qu’il faudra se tourner. Il est bien sûr
-possible d’opter pour une solution “hybride” avec une partie des codes
-utilisant une option plutôt que l’autre, à condition de bien clarifier
-cela en amont.</p>
+<strong><code>dplyr</code> sera le choix le plus adapté</strong>. Pour
+des utilisateurs de SAS, en particulier pour ceux connaissant un peu de
+SQL, les fonctions à utiliser seront plus intuitives. Cette option
+bénéficie en outre d’une communauté d’utilisateurs très importante
+permettant de trouver facilement des réponses en ligne aux problèmes que
+vous pourrez rencontrer. De plus, la vitesse d’exécution sera souvent au
+moins aussi bonne que celle de SAS. Si l’activité concernée par le
+recodage a un gros enjeu de temps d’exécution et moins de lisibilité du
+code, c’est sans doute vers <code>data.table</code> qu’il sera
+intéressant de se tourner. Il peut aussi être possible de choisir le
+meilleur des deux mondes avec le package <a href="https://dtplyr.tidyverse.org/">dtplyr</a>, combinant la syntaxe de
+dplyr aux fonctions de data.table.</p>
 </div>
 </div>
 <div id="organisation-du-travail-de-recodage-en-r" class="section level1">
 <h1>Organisation du travail de recodage en R</h1>
-<p>Une fois que le choix de l’option de recodage a été fait, vous pouvez
-spécifier vos reccommandations dans un document listant les “bonnes
-pratiques” de codage en R dans le cadre de votre activité. Cela pourra
-servir à encadrer et accompagner le travail des développeurs R et
+<p>Une fois que vous avez choisi comment vous souhaitez coder en R, vous
+pouvez spécifier vos recommandations dans un document listant les
+“bonnes pratiques” de codage en R dans le cadre de votre activité. Cela
+pourra servir à encadrer et accompagner le travail des développeurs R et
 uniformiser autant que possible les différentes manières de coder. En
 plus de cela, nous recommandons quelques outils simples à adopter pour
 tirer le meilleur de l’éco-système R.</p>
@@ -1625,14 +1618,35 @@ machine, tels que
 <code>C://Users/antoine/Documents/Mon_projet/data/ma_base.csv</code>
 C’est donc un premier pas vers la création d’un dossier de travail
 contenant des scripts réutilisables en l’état par vos collègues, que ce
-soit ceux qui travaillent dans votre équipoe ou ceux qui vous
+soit ceux qui travaillent dans votre équipe ou ceux qui vous
 succéderont.</p>
 </div>
-<div id="renv" class="section level2">
-<h2>Renv</h2>
+<div id="renv-pour-gérer-les-packages" class="section level2">
+<h2>Renv pour gérer les packages</h2>
+<p>Renv est un gestionnaire de packages R, dont nous parlons déjà dans
+<a href="https://blog.statoscop.fr/gestion-des-packages-sur-r-avec-renv.html">cet
+article</a>. Il vous permet de choisir un environnement stable de
+packages sur un projet donné. En particulier, il vous assure à un moment
+T que toute une équipe sur un même projet travaille bien avec les mêmes
+packages et les mêmes versions de ceux-ci. Il vous permet aussi de
+pouvoir refaire tourner un code avec le même système de packages qu’au
+moment où il a été créé. C’est donc un autre élément essentiel de la
+reproductibilité et de la stabilité de vos projets.</p>
 </div>
-<div id="git" class="section level2">
-<h2>Git</h2>
+<div id="git-ou-un-autre-logiciel-de-gestion-de-versions" class="section level2">
+<h2>Git ou un autre logiciel de gestion de versions</h2>
+<p>Même si ça n’est pas spécifique à R, il est important de profiter de
+cette migration pour adopter l’utilisation d’un logiciel de gestion de
+versions si cela n’est pas déjà le cas. <a href="https://githowto.com/">Git</a> est sans doute le plus utilisé
+aujourd’hui. Il permet de tracer les modifications de votre code
+pas-à-pas, de revenir à une version antérieure de votre projet sans
+difficultés, de partager en temps réel avec votre équipe les
+modifications du code, de gérer aussi simplement que possible des
+modifications simultanées sur un même projet, et bien d’autres choses
+encore… La prise en main de Git peut prendre un peu de temps car cela
+n’est pas forcément intuitif pour qui n’est pas habitué à la gestion de
+versions mais c’est sans aucun doute absolument nécessaire pour assurer
+une bonne gestion de vos projets.</p>
 </div>
 </div>
 <div id="accompagnement-de-la-migration-de-sas-vers-r" class="section level1">
