@@ -1514,7 +1514,7 @@ div.tocify {
 
 
 <p>L’utilisation du logiciel d’analyses statistiques SAS est encore
-assez ancrée dans certaines administrations publiques et grosses
+assez ancrée dans certaines administrations publiques et grandes
 entreprises, malgré la concurrence de deux logiciels open-source offrant
 des performances souvent supérieures : R et Python. La <strong>migration
 vers un nouveau langage</strong> présente un certain nombre de
@@ -1530,9 +1530,9 @@ nombre de possibilités qui s’offrent à vous pour coder. Le CRAN (pour
 impressionnant de packages (+ de 18000!). Dans ces conditions, il est
 important de se mettre d’accord a minima sur l’orientation que vous
 souhaitez prendre, afin d’assurer une certaine homogénéité entre les
-différents membres de vos équipes. Ces “règles” peuvent bien sûr varier
-d’une équipe à l’autre, en fonction de ses besoins spécifiques. On
-présente ici trois des options les plus couramment utilisées en
+différents membres de vos équipes. Ces <em>règles</em> peuvent bien sûr
+varier d’une équipe à l’autre, en fonction de ses besoins spécifiques.
+On présente ici trois des options les plus couramment utilisées en
 statistiques : base R, le tidyverse et data.table. On ne rentre pas dans
 le détail de la syntaxe de chacune de ces options mais vous pouvez
 approfondir cet aspect en lisant notre <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">article
@@ -1559,17 +1559,17 @@ packages</a> destinés au traitement de données, du nettoyage à l’analyse
 et la datavisualisation. En particulier, le package <code>dplyr</code>
 propose des fonctions de haut niveau couvrant la très grande majorité
 des besoins lors de la manipulation des données. Ces fonctions, chaînées
-avec l’opérateur “pipe” (<code>%&gt;%</code> du package
+avec l’opérateur <em>pipe</em> (<code>%&gt;%</code> du package
 <code>magritr</code> ou <code>|&gt;</code> de base R depuis la version
-4.1.0), offrent un code très lisible et intuitif à écrire. Enfin, ce
-code est optimisé et offre de <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">bonnes
+4.1.0), offrent un <strong>code très lisible et intuitif</strong> à
+écrire. Enfin, elles sont optimisées et offrent de <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">bonnes
 performances</a>. L’inconvénient du tidyverse est sans doute qu’il
 concerne beaucoup de packages et que ces packages ont chacun également
 un certain nombre de dépendances à d’autres packages. Cependant, le fait
 qu’il soit maintenu par les équipes de RStudio (la société s’appelle <a href="https://posit.co/">Posit</a> depuis peu) est de nature à rassurer
 sur la stabilité de cette solution. En général on ne recommande de toute
-façon pas de charger le tidyverse dans son ensemble mais les packages de
-celui-ci que vous souhaitez utiliser.</p>
+façon pas de charger l’ensemble du tidyverse mais seulement les packages
+que vous utilisez.</p>
 </div>
 <div id="data.table" class="section level2">
 <h2>data.table</h2>
@@ -1577,10 +1577,9 @@ celui-ci que vous souhaitez utiliser.</p>
 plus performante</a>. Ce package utilise un format concurrent du
 <code>data.frame</code> de base R, le <code>data.table</code>, qui
 optimise la vitesse d’exécution des instructions. Ce package a aussi
-l’avantage de ne dépendre d’aucun autre package, ce qui est de nature à
-rassurer sur sa stabilité dans le temps. En contrepartie, il offre une
-syntaxe sans doute moins lisible pour les non-initiés, en particulier
-pour des opérations plus complexes.</p>
+l’avantage de ne dépendre d’aucun autre package. En contrepartie, il
+offre une syntaxe sans doute moins lisible pour les non-initiés, en
+particulier pour des opérations plus complexes.</p>
 </div>
 <div id="notre-conseil" class="section level2">
 <h2>Notre conseil</h2>
@@ -1598,8 +1597,8 @@ intéressant de se tourner. Il peut aussi être possible de choisir le
 meilleur des deux mondes avec le package <a href="https://dtplyr.tidyverse.org/">dtplyr</a>, combinant la syntaxe de
 dplyr aux fonctions de data.table. Enfin, il va de soi qu’une certaine
 souplesse est de mise pour pouvoir utiliser les fonctions de base R
-quand elles n’ont pas d’équivalent dans l’écosystème choisi et d’autres
-packages pour des besoins spécifiques.</p>
+quand elles n’ont pas d’équivalent dans l’écosystème choisi, ainsi que
+d’autres packages pour des besoins spécifiques.</p>
 </div>
 </div>
 <div id="organisation-du-travail-de-recodage-en-r" class="section level1">
@@ -1642,7 +1641,7 @@ reproductibilité et de la stabilité de vos projets.</p>
 <h2>Git ou un autre logiciel de gestion de versions</h2>
 <p>Même si ça n’est pas spécifique à R, il est important de profiter de
 cette migration pour adopter l’utilisation d’un logiciel de gestion de
-versions si cela n’est pas déjà le cas. <a href="https://githowto.com/">Git</a> est sans doute le plus utilisé
+versions si cela n’est pas déjà fait. <a href="https://githowto.com/">Git</a> est sans doute le plus utilisé
 aujourd’hui. Il permet de tracer les modifications de votre code
 pas-à-pas, de revenir à une version antérieure de votre projet sans
 difficultés, de partager en temps réel avec votre équipe les
