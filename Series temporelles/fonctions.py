@@ -5,7 +5,7 @@ import statsmodels.api as sm
 import statsmodels.tsa.api as smt
 from statsmodels.tsa.stattools import acf, pacf
 
-def ts_plot(y, lags=None, title=''):
+def ts_plot(y, lags=None, title='', fig_size=(14,12)):
     """
     Calcul de l'acf, pacf, de l'histogramme et du QQ-plot d'une série temp
     """
@@ -14,7 +14,7 @@ def ts_plot(y, lags=None, title=''):
         y = pd.Series(y)
     
     # initialisation de la figure et des axes
-    fig = plt.figure(figsize=(14, 12))
+    fig = plt.figure(figsize=fig_size)
     ts_ax = fig.add_subplot(311)
     acf_ax = fig.add_subplot(323)
     pacf_ax = fig.add_subplot(324)
@@ -27,7 +27,7 @@ def ts_plot(y, lags=None, title=''):
     
     # ACF et PACF
     smt.graphics.plot_acf(y, lags=lags, ax=acf_ax, alpha=0.05)
-    smt.graphics.plot_pacf(y, lags=lags, ax=pacf_ax, alpha=0.05)
+    smt.graphics.plot_pacf(y, lags=lags, ax=pacf_ax, alpha=0.05, method='ywm')
     
     # QQ-plot
     sm.qqplot(y, line='s', ax=qq_ax)
@@ -40,7 +40,7 @@ def ts_plot(y, lags=None, title=''):
     plt.show()
     
 
-def plot_acf_pacf(y, plot_pacf=False):
+def plot_acf_pacf(y, plot_pacf=False, fig_size=(14,6)):
     """
     représentation des sorties ACF/PACF
     """
@@ -52,7 +52,7 @@ def plot_acf_pacf(y, plot_pacf=False):
         y2 = pacf(y.values)[1:]
         label = 'PACF'
         
-    plt.figure(figsize=(14,6))
+    plt.figure(figsize=fig_size)
     plt.bar(range(len(y2)), y2, width = 0.1)
     plt.xlabel('lag')
     plt.ylabel(label)
