@@ -1516,11 +1516,12 @@ div.tocify {
 <p>L’utilisation du logiciel d’analyses statistiques SAS est encore
 assez ancrée dans certaines administrations publiques et grosses
 entreprises, malgré la concurrence de deux logiciels open-source offrant
-des performances souvent supérieures : R et Python. La migration vers un
-nouveau langage présente en effet un certain nombre de difficultés, mais
-le jeu en vaut la chandelle! Nous proposons dans cet article quelques
-principes pour recoder ses scripts SAS en R et assurer une transition
-vers l’open-source la plus simple possible.</p>
+des performances souvent supérieures : R et Python. La <strong>migration
+vers un nouveau langage</strong> présente un certain nombre de
+difficultés, mais le jeu en vaut la chandelle! Nous proposons dans cet
+article quelques recommandations pour recoder ses scripts SAS en R et
+assurer une <strong>transition vers l’open-source</strong> la plus
+simple possible.</p>
 <div id="options-de-recodage-en-r" class="section level1">
 <h1>Options de recodage en R</h1>
 <p>Une des difficultés de R est aussi une de ses forces : le grand
@@ -1547,8 +1548,9 @@ certaine stabilité. Cependant, pour l’analyse de données, la syntaxe
 sera vite verbeuse et peu lisible pour des non initiés. De plus, pour
 des traitements de données plus complexes, vous ne trouverez pas
 forcément ce qu’il vous faut dans ce que propose base R. Enfin, cette
-option est beaucoup moins performante en termes de vitesse d’exécution
-que les deux que nous vous présentons ensuite.</p>
+option est souvent <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">bien
+moins performante</a> en termes de vitesse d’exécution que les deux que
+nous vous présentons ensuite.</p>
 </div>
 <div id="tidyverse" class="section level2">
 <h2>Tidyverse</h2>
@@ -1559,26 +1561,26 @@ propose des fonctions de haut niveau couvrant la très grande majorité
 des besoins lors de la manipulation des données. Ces fonctions, chaînées
 avec l’opérateur “pipe” (<code>%&gt;%</code> du package
 <code>magritr</code> ou <code>|&gt;</code> de base R depuis la version
-la plus récente), offrent un code très lisible et intuitif à écrire.
-Enfin, ce code est optimisé et offre de <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">bonnes
+4.1.0), offrent un code très lisible et intuitif à écrire. Enfin, ce
+code est optimisé et offre de <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">bonnes
 performances</a>. L’inconvénient du tidyverse est sans doute qu’il
 concerne beaucoup de packages et que ces packages ont chacun également
 un certain nombre de dépendances à d’autres packages. Cependant, le fait
-qu’il soit maintenu par des équipes de RStudio, est de nature à rassurer
-sur la stabilité de ces packages. En général on ne recommande de toute
+qu’il soit maintenu par les équipes de RStudio (la société s’appelle <a href="https://posit.co/">Posit</a> depuis peu) est de nature à rassurer
+sur la stabilité de cette solution. En général on ne recommande de toute
 façon pas de charger le tidyverse dans son ensemble mais les packages de
 celui-ci que vous souhaitez utiliser.</p>
 </div>
 <div id="data.table" class="section level2">
 <h2>data.table</h2>
-<p>Des trois options, <code>data.table</code> est la plus performante.
-Ce package utilise un format concurrent du <code>data.frame</code> de
-base R, le <code>data.table</code>, qui optimise la vitesse d’exécution
-des instructions. Ce package a aussi l’avantage de ne dépendre d’aucun
-autre package, ce qui est de nature à rassurer sur sa stabilité dans le
-temps. En contrepartie, il offre une syntaxe sans doute moins lisible
-pour les non-initiés, en particulier pour des opérations plus
-complexes.</p>
+<p>Des trois options, <code>data.table</code> est <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">la
+plus performante</a>. Ce package utilise un format concurrent du
+<code>data.frame</code> de base R, le <code>data.table</code>, qui
+optimise la vitesse d’exécution des instructions. Ce package a aussi
+l’avantage de ne dépendre d’aucun autre package, ce qui est de nature à
+rassurer sur sa stabilité dans le temps. En contrepartie, il offre une
+syntaxe sans doute moins lisible pour les non-initiés, en particulier
+pour des opérations plus complexes.</p>
 </div>
 <div id="notre-conseil" class="section level2">
 <h2>Notre conseil</h2>
@@ -1594,18 +1596,21 @@ recodage a un gros enjeu de temps d’exécution et moins de lisibilité du
 code, c’est sans doute vers <code>data.table</code> qu’il sera
 intéressant de se tourner. Il peut aussi être possible de choisir le
 meilleur des deux mondes avec le package <a href="https://dtplyr.tidyverse.org/">dtplyr</a>, combinant la syntaxe de
-dplyr aux fonctions de data.table.</p>
+dplyr aux fonctions de data.table. Enfin, il va de soi qu’une certaine
+souplesse est de mise pour pouvoir utiliser les fonctions de base R
+quand elles n’ont pas d’équivalent dans l’écosystème choisi et d’autres
+packages pour des besoins spécifiques.</p>
 </div>
 </div>
 <div id="organisation-du-travail-de-recodage-en-r" class="section level1">
 <h1>Organisation du travail de recodage en R</h1>
 <p>Une fois que vous avez choisi comment vous souhaitez coder en R, vous
-pouvez spécifier vos recommandations dans un document listant les
-“bonnes pratiques” de codage en R dans le cadre de votre activité. Cela
-pourra servir à encadrer et accompagner le travail des développeurs R et
-uniformiser autant que possible les différentes manières de coder. En
-plus de cela, nous recommandons quelques outils simples à adopter pour
-tirer le meilleur de l’éco-système R.</p>
+pouvez spécifier vos recommandations dans un document <strong>listant
+les bonnes pratiques</strong> de codage en R. Cela pourra servir à
+encadrer et accompagner le travail des développeurs R et uniformiser
+autant que possible les différentes manières de coder. En plus de cela,
+nous recommandons quelques outils simples à adopter pour tirer le
+meilleur de l’éco-système R.</p>
 <div id="les-projets-rstudio" class="section level2">
 <h2>Les projets RStudio</h2>
 <p>Les <a href="https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-Projects">projets
@@ -1615,7 +1620,7 @@ vers le dossier des sorties que vous voulez créer de manière
 <strong>relative</strong> à ce dossier parent. Leur utilisation permet
 de bannir de vos scripts l’utilisation de chemins spécifiques à votre
 machine, tels que
-<code>C://Users/antoine/Documents/Mon_projet/data/ma_base.csv</code>
+<code>C://Users/antoine/Documents/Mon_projet/data/ma_base.csv</code>.
 C’est donc un premier pas vers la création d’un dossier de travail
 contenant des scripts réutilisables en l’état par vos collègues, que ce
 soit ceux qui travaillent dans votre équipe ou ceux qui vous
@@ -1651,14 +1656,55 @@ une bonne gestion de vos projets.</p>
 </div>
 <div id="accompagnement-de-la-migration-de-sas-vers-r" class="section level1">
 <h1>Accompagnement de la migration de SAS vers R</h1>
+<p>Enfin, un aspect important de la migration vers un nouveau langage
+est la <strong>gestion de la transition</strong> entre les deux. Que
+celle-ci soit prise en main en interne ou par un prestataire, il est
+indispensable de former les équipes en place et de libérer du temps de
+travail pour accompagner cette transition.</p>
 <div id="en-interne" class="section level2">
 <h2>En interne</h2>
-<p>se mettre d’accord sur des bonnes pratiques de codage ## Avec un
-prestataire<br />
-formations, recodage pas à pas, associer les équipes au travail Et les
-perspectives : a pplication RShiny, automatisation des rapports avec
-Rmarkdown?</p>
+<p>L’avantage de gérer la migration vers R en interne est qu’elle
+associe forcément à ce processus les équipes en place. L’inconvénient
+évident est qu’il est alors indispensable de libérer beaucoup de temps
+du travail effectif à consacrer à cette tâche. Il est très important en
+amont de se mettre d’accord sur les points évoqués plus haut afin
+d’établir une sorte de <em>charte</em> du code qui assurera un minimum
+de cohérence au sein des équipes. Enfin, il est évidemment indispensable
+d’accompagner chacun des membres des équipes en fonction de leur
+familiarité avec le nouveau langage. L’idéal est de proposer des
+<strong>formations sur mesure</strong> correspondant aux problématiques
+métier de chacun.</p>
 </div>
+<div id="avec-un-prestataire" class="section level2">
+<h2>Avec un prestataire</h2>
+<p>Si vous faites appel à un prestataire, cela ne signifie pas pour
+autant que vous ne devrez pas libérer du temps de vos équipes pour la
+migration. On recommande en effet des échanges étroits et réguliers avec
+le prestataire, et plusieurs livraisons à intervalles réguliers plutôt
+qu’une seule à la fin du travail. Ceci doit permettre de s’assurer d’une
+part que le prestataire ne va pas dans une mauvaise direction et d’autre
+part que le code apparaît lisible et compréhensible pour les chargés
+d’étude. C’est aussi l’occasion pour ces derniers de se former et
+d’échanger avec le prestataire sur ces choix lors du recodage. Il est
+aussi possible de faire appel à un prestataire simplement pour encadrer
+votre équipe dans le travail de recodage, optimiser le code à certains
+points bloquants, faire un audit du travail réalisé…</p>
+</div>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>Quitter SAS et aller vers R, ou un autre logiciel, c’est donc du
+travail et cela nécessite d’investir du temps et des moyens. Mais c’est
+aussi se libérer d’une <strong>licence beaucoup trop chère</strong>, et
+s’ouvrir les portes de nouvelles possibilités. Pourquoi ne pas en
+profiter pour <strong>automatiser vos rapports</strong> et vos
+publications avec <a href="https://rmarkdown.rstudio.com/">R
+Markdown</a>? Et si vous vous lanciez dans le développement d’une petite
+<a href="https://shiny.rstudio.com/gallery/">application interactive R
+Shiny</a> pour mettre en valeur vos résultats les plus marquants?<br />
+Quoiqu’il en soit, si cet article vous a donné envie d’aller plus loin,
+vous pouvez <a href="https://www.statoscop.fr/contact">nous contacter
+sur le site de Statoscop</a> pour discuter des prochaines étapes!</p>
 </div>
 
 
