@@ -1,0 +1,15 @@
+---
+title: "Programmation fonctionnelle dans dplyr"
+author: "Antoine"
+date: ""
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+library(dplyr)
+```
+
+# 
