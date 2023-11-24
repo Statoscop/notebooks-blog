@@ -102,17 +102,50 @@ my_indic(mtcars, mpg, seuil = 20) |> count(mpg_indic)
 ```
 
 # Coder une fonction avec n'importe quel nombre de paramètres  
-Essayons maintenant d'aller un peu plus loin! 
-## Paramètres renseignés en symboles  
+Essayons maintenant d'aller un peu plus loin! On explore dans cette partie des manières plus flexibles de coder nos fonctions, sans fixer à l'avance le nombre de paramètres.  
 
-`...` 
+## L'utilisation d'across  
+La solution la plus directe pour permettre à l'utilisateur de votre fonction de définir le nombre de paramètres qu'il souhaite est en général d'utiliser la puissance d'`across()`. On parle de manière détaillée de ce verbe dans [cet article](https://blog.statoscop.fr/fonctionnement-et-performances-dacross-dans-dplyr.html).  
+Voyons ici comment vous pouvez vous en servir. Et dans le cas d'une fonction, c'est aussi la syntaxe `{{ var }}` qui nous permettra de l'utiliser. Imaginez par exemple que vous souhaitiez créer une fonction permettant des statistiques sur un certain nombre de variables définies par l'utilisateur. Une telle fonction s'écrirait ainsi :  
 
-## Paramètres renseignés en chaînes de caractères  
-all_of, any_of dans vecteur de chaînes de caractères  
+```{r}
+mean_multiple_var <- function(data, vars_mean){
+  data |> summarise(across({{ vars_mean }}, mean))
+}
+```
 
-## Utiliser la souplesse du tidyselect combiné avec across   
-where, ends_with, starts_with...
-argument .names de across  
+On peut ensuite appeler la fonction en définissant le paramètre `vars_mean` comme un vecteur de symboles, ou comme un seul symbole dans le cas où on ne voudrait la moyenne que d'une variable :  
+
+```{r}
+mean_multiple_var(mtcars, vars_mean = disp)
+mean_multiple_var(mtcars, vars_mean = c(mpg, disp, qsec)) 
+```
+
+Si nous souhaitons que l'utilisateur entre un vecteur de chaînes de caractères, cela fonctionne aussi car across utilise la __tidyselection__ qui tolère les appels aux vecteurs de chaînes de caractères. Il faut juste l'encapsuler dans une fonction appropriée, ici `all_of()` pour sélectionner tous les éléments du vecteur :  
+
+```{r}
+mean_multiple_var2 <- function(data, vars_mean){
+  data |> summarise(across(all_of(vars_mean), mean))
+}
+mean_multiple_var2(mtcars, vars_mean = c("mpg", "disp", "qsec")) 
+```
+
+Enfin, on peut utiliser l'argument `.names` de la fonction `across` pour permettre un renommage des variables au souhait de l'utilisateur :  
+
+```{r}
+# L'utilisateur peut choisir le préfixe qu'il souhaite.
+# Notez l'utilisation de .col, interne à across(), 
+# pour faire référence au nom de la variable
+mean_multiple_var2 <- function(data, vars_mean, prefixe = "mean"){
+  data |> summarise(across(all_of(vars_mean), mean, .names = "{prefixe}_{.col}"))
+}
+mean_multiple_var2(mtcars, vars_mean = c("mpg", "disp", "qsec")) 
+```
+
+
+## Autres astuces : pick, any_of...
+Quid du group_by, select, etc???
+
 
 # Références  
 
