@@ -12,7 +12,7 @@
 <meta name="author" content="Antoine" />
 
 
-<title>Programmation fonctionnelle dans dplyr</title>
+<title>Coder des fonctions dans le tidyverse</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,12 +349,17 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Programmation fonctionnelle dans dplyr</h1>
+<h1 class="title toc-ignore">Coder des fonctions dans le tidyverse</h1>
 <h4 class="author">Antoine</h4>
 
 </div>
 
 
+<p>Dans cet article, on s’intéresse aux manières de coder des fonctions
+en utilisant la syntaxe du <code>tidyverse</code>. Si vous n’êtes pas à
+l’aise avec <code>dplyr</code> vous pouvez vous référer à <a href="https://blog.statoscop.fr/fonctionnement-et-performances-dacross-dans-dplyr.html">notre
+article sur <code>across</code></a> ou à celui sur la <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">comparaison
+entre base R, data.table et dplyr</a>.</p>
 <div id="le-tidyverse-et-lévaluation-non-standard" class="section level1">
 <h1>Le tidyverse et l’évaluation non standard</h1>
 <p>La syntaxe du <code>tidyverse</code> s’appuie sur des fonctions aux
@@ -384,8 +389,8 @@ my_filter &lt;- function(data, x1, seuil){
 
 my_filter(mtcars, x1 = mpg, seuil = 20)
 ## Error in `filter()`:
-## ! Problem while computing `..1 = x1 &lt;= seuil`.
-## Caused by error in `mask$eval_all_filter()`:
+## ℹ In argument: `x1 &lt;= seuil`.
+## Caused by error:
 ## ! objet &#39;mpg&#39; introuvable</code></pre>
 <p>Cette erreur est la conséquence d’une propriété importante du
 <code>tidyverse</code> : le <strong>data masking</strong>. C’est cette
@@ -434,13 +439,14 @@ forme de chaîne de caractère?</p>
 <code>df[[&quot;var&quot;]]</code>. Sauf que, dans un contexte d’expressions
 chaînées, on va utiliser la notation bien utile
 <code>.data[[&quot;var&quot;]]</code> qui fait référence au dataframe de la chaîne
-d’expression _dans son état au moment de l’appel__. En effet, si je
-voulais faire référence au dataframe par son nom je pourrais me
-retrouver dans cette situation :</p>
+d’expression <strong>dans son état au moment de l’appel</strong>. En
+effet, si je voulais faire référence au dataframe par son nom je
+pourrais me retrouver dans cette situation :</p>
 <pre class="r"><code>mtcars |&gt; filter(mpg &lt; 20) |&gt; transmute(carb_2 = mtcars[[&quot;carb&quot;]]^2) |&gt; head(1)
 ## Error in `transmute()`:
-## ! Problem while computing `carb_2 = mtcars[[&quot;carb&quot;]]^2`.
-## ✖ `carb_2` must be size 18 or 1, not 32.</code></pre>
+## ℹ In argument: `carb_2 = mtcars[[&quot;carb&quot;]]^2`.
+## Caused by error:
+## ! `carb_2` must be size 18 or 1, not 32.</code></pre>
 <p>Les tailles des vecteurs ne correspondent pas! En effet, le filtre
 appliqué n’est pas pris en compte au moment de l’appel à la variable
 <code>carb</code>. La notation <code>.data</code> résoud bien ce souci
@@ -476,11 +482,11 @@ cette indicatrice en fonction de la variable numérique qu’elle décrit
 <code>x1_indic</code>, et non prendre le nom de la variable numérique de
 <code>x1</code>. Et là encore c’est la double accolade qui va nous
 permettre de résoudre ce problème, mais pas seulement. Pour cela, on
-fait référence au nom du paramètre au sein d’une double accolade. De
-plus, le nom de la variable ainsi créée est donné entre guillemets. On
-peut également ajouter d’autres caractères. Enfin, <strong>le signe
-<code>=</code> doit être remplacé par <code>:=</code></strong>. Cela
-donne :</p>
+fait <strong>référence au nom du paramètre au sein d’une double
+accolade</strong>. De plus, le nom de la variable ainsi créée est donné
+entre guillemets. On peut également ajouter d’autres caractères. Enfin,
+<strong>le signe <code>=</code> doit être remplacé par
+<code>:=</code></strong>. Cela donne :</p>
 <pre class="r"><code>my_indic &lt;- function(data, x1, seuil){
   data |&gt; mutate(&quot;{{ x1 }}_indic&quot; := if_else({{ x1 }} &lt;= seuil, 1, 0))
 }</code></pre>
@@ -494,24 +500,142 @@ donne :</p>
 </div>
 <div id="coder-une-fonction-avec-nimporte-quel-nombre-de-paramètres" class="section level1">
 <h1>Coder une fonction avec n’importe quel nombre de paramètres</h1>
-<p>Essayons maintenant d’aller un peu plus loin! ## Paramètres
-renseignés en symboles</p>
-<p><code>...</code></p>
-<div id="paramètres-renseignés-en-chaînes-de-caractères-1" class="section level2">
-<h2>Paramètres renseignés en chaînes de caractères</h2>
-<p>all_of, any_of dans vecteur de chaînes de caractères</p>
+<p>Essayons maintenant d’aller un peu plus loin! On explore dans cette
+partie des manières <strong>plus flexibles</strong> de coder nos
+fonctions, sans fixer à l’avance le nombre de paramètres.</p>
+<div id="lutilisation-dacross" class="section level2">
+<h2>L’utilisation d’<code>across</code></h2>
+<p>La solution la plus directe pour permettre à l’utilisateur de votre
+fonction de définir le nombre de paramètres qu’il souhaite est en
+général d’utiliser la puissance d’<code>across()</code>. On parle de
+manière détaillée de ce verbe dans <a href="https://blog.statoscop.fr/fonctionnement-et-performances-dacross-dans-dplyr.html">cet
+article</a>.<br />
+Dans le cas d’une fonction, c’est aussi la syntaxe
+<code>{{ var }}</code> qui nous permettra de l’utiliser. Imaginez par
+exemple que vous souhaitiez créer une fonction permettant des
+statistiques sur un certain nombre de variables définies par
+l’utilisateur. Une telle fonction s’écrirait ainsi :</p>
+<pre class="r"><code>mean_multiple_var &lt;- function(data, vars_mean){
+  data |&gt; summarise(across({{ vars_mean }}, mean))
+}</code></pre>
+<p>On peut ensuite appeler la fonction en définissant <strong>le
+paramètre <code>vars_mean</code> comme un vecteur de symboles</strong>,
+ou comme un seul symbole dans le cas où on ne voudrait la moyenne que
+d’une variable :</p>
+<pre class="r"><code>mean_multiple_var(mtcars, vars_mean = disp)
+##       disp
+## 1 230.7219
+mean_multiple_var(mtcars, vars_mean = c(mpg, disp, qsec)) 
+##        mpg     disp     qsec
+## 1 20.09062 230.7219 17.84875</code></pre>
+<p>Si nous souhaitons que l’utilisateur entre un vecteur de chaînes de
+caractères, cela fonctionne aussi car <strong>across utilise la
+tidyselection</strong> qui tolère les appels aux vecteurs de chaînes de
+caractères. Il faut juste l’encapsuler dans une fonction appropriée, ici
+<code>all_of()</code> pour sélectionner tous les éléments du vecteur
+:</p>
+<pre class="r"><code>mean_multiple_var2 &lt;- function(data, vars_mean){
+  data |&gt; summarise(across(all_of(vars_mean), mean))
+}
+mean_multiple_var2(mtcars, vars_mean = c(&quot;mpg&quot;, &quot;disp&quot;, &quot;qsec&quot;)) 
+##        mpg     disp     qsec
+## 1 20.09062 230.7219 17.84875</code></pre>
+<p>Notez qu’avec <code>any_of()</code>, on autorise l’utilisateur à
+entre des noms de colonnes n’existant pas dans le dataframe. Ils sont
+alors juste écartés de la sélection, sans que cela génère des erreurs
+:</p>
+<pre class="r"><code>mean_multiple_var3 &lt;- function(data, vars_mean){
+  data |&gt; summarise(across(any_of(vars_mean), mean))
+}
+mean_multiple_var3(mtcars, vars_mean = c(&quot;Sepal.Length&quot;, &quot;Sepal.Width&quot;, &quot;mpg&quot;, &quot;disp&quot;, &quot;qsec&quot;)) 
+##        mpg     disp     qsec
+## 1 20.09062 230.7219 17.84875</code></pre>
+<p>Enfin, on peut utiliser l’argument <code>.names</code> de la fonction
+<code>across</code> pour permettre un <strong>renommage des variables au
+souhait de l’utilisateur</strong> :</p>
+<pre class="r"><code>mean_multiple_var2 &lt;- function(data, vars_mean, prefixe = &quot;mean&quot;){
+  data |&gt; summarise(across(all_of(vars_mean), mean, .names = &quot;{prefixe}_{.col}&quot;))
+}
+mean_multiple_var2(mtcars, vars_mean = c(&quot;mpg&quot;, &quot;disp&quot;, &quot;qsec&quot;)) 
+##   mean_mpg mean_disp mean_qsec
+## 1 20.09062  230.7219  17.84875</code></pre>
+<p>Dans cette version, l’utilisateur peut <strong>paramétrer le préfixe
+qu’il souhaite</strong>. Notez l’utilisation de .col, interne à
+across(), pour faire référence au nom de la variable ## Utilisation de
+<code>pick</code> et <code>...</code></p>
+<p><code>pick()</code> (à partir de dplyr &gt;= 1.1.4) permet de
+sélectionner un nombre indéterminé de paramètres dans les fonctions du
+type <code>group_by()</code>, <code>select()</code>…c’est-à-dire les
+fonctions permettant de sélectionner un sous-ensemble de la base. C’est
+l’équivalent de <code>across()</code> pour les fonctions portant sur
+toute la base et non sur chacune des colonnes. Par exemple, la fonction
+suivante permet de grouper par des variables du choix de l’utilisateur
+et de sortir les moyennes de toutes les variables numériques :</p>
+<pre class="r"><code>my_group_by &lt;- function(data, vars_group){
+  data |&gt; 
+    group_by(pick({{ vars_group }})) |&gt; 
+    summarise(across(where(is.numeric), mean, .names = &quot;mean_{.col}&quot;))
+}
+my_group_by(mtcars, vars_group = c(am, cyl))
+## `summarise()` has grouped output by &#39;am&#39;. You can override using the `.groups`
+## argument.
+## # A tibble: 6 × 11
+## # Groups:   am [2]
+##      am   cyl mean_mpg mean_disp mean_hp mean_drat mean_wt mean_qsec mean_vs
+##   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+## 1     0     4     22.9     136.     84.7      3.77    2.94      21.0   1    
+## 2     0     6     19.1     205.    115.       3.42    3.39      19.2   1    
+## 3     0     8     15.0     358.    194.       3.12    4.10      17.1   0    
+## 4     1     4     28.1      93.6    81.9      4.18    2.04      18.4   0.875
+## 5     1     6     20.6     155     132.       3.81    2.76      16.3   0    
+## 6     1     8     15.4     326     300.       3.88    3.37      14.6   0    
+## # ℹ 2 more variables: mean_gear &lt;dbl&gt;, mean_carb &lt;dbl&gt;</code></pre>
+<p>Comme pour <code>across</code>, vous pouvez aussi utiliser les verbes
+de la tidyselection : <code>all_of</code>, <code>any_of</code>,
+<code>starts_with</code>, etc…</p>
+<p>Enfin, il est possible d’utiliser la syntaxe <code>...</code>, de la
+manière suivante :</p>
+<pre class="r"><code>my_group_by &lt;- function(data, ...){
+  data |&gt; 
+    group_by(...) |&gt; 
+    summarise(across(where(is.numeric), mean, .names = &quot;mean_{.col}&quot;))
+}
+my_group_by(mtcars, am, cyl) |&gt; head(3)
+## `summarise()` has grouped output by &#39;am&#39;. You can override using the `.groups`
+## argument.
+## # A tibble: 3 × 11
+## # Groups:   am [1]
+##      am   cyl mean_mpg mean_disp mean_hp mean_drat mean_wt mean_qsec mean_vs
+##   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+## 1     0     4     22.9      136.    84.7      3.77    2.94      21.0       1
+## 2     0     6     19.1      205.   115.       3.42    3.39      19.2       1
+## 3     0     8     15.0      358.   194.       3.12    4.10      17.1       0
+## # ℹ 2 more variables: mean_gear &lt;dbl&gt;, mean_carb &lt;dbl&gt;</code></pre>
+<p>Cette notation a l’avantage d’être très simple et flexible : on peut
+définir à la place des <code>...</code> autant de paramètres différents
+que l’on veut. Mais elle ne permet pas de différencier deux groupes de
+paramètres différents, si l’on veut par exemple définir d’une part des
+variables sur lesquels grouper, et d’autre des variables sur lesquels
+sélectionner.</p>
 </div>
-<div id="utiliser-la-souplesse-du-tidyselect-combiné-avec-across" class="section level2">
-<h2>Utiliser la souplesse du tidyselect combiné avec across</h2>
-<p>where, ends_with, starts_with… argument .names de across</p>
 </div>
-</div>
-<div id="références" class="section level1">
-<h1>Références</h1>
-<p><a href="https://dplyr.tidyverse.org/articles/programming.html#user-supplied-data">Programming
-with dplyr</a> <a href="https://rlang.r-lib.org/reference/glue-operators.html">Name
-injection - rlang</a> <a href="https://rlang.r-lib.org/reference/topic-data-mask-programming.html">Data
-mask programming patterns</a></p>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>Le <code>tidyverse</code>, c’est donc plein d’astuces pour rendre le
+code très facile à écrire et à lire, mais cela implique quelques étapes
+supplémentaires quand on veut coder ses propres fonctions. On espère que
+cet article vous aura aidés à y voir plus clair. Pour creuser le sujet,
+vous pouvez vous référer à la page <a href="https://dplyr.tidyverse.org/articles/programming.html#user-supplied-data">Programming
+with dplyr</a> sur la documentation officielle de <code>dplyr</code>.
+Vous pouvez également consulter, sur le site de <code>rlang</code>, les
+pages <a href="https://rlang.r-lib.org/reference/glue-operators.html">Name
+injection</a> et <a href="https://rlang.r-lib.org/reference/topic-data-mask-programming.html">Data
+mask programming patterns</a>.</p>
+<p>C’est la fin de cet article! N’hésitez pas à <a href="https://www.statoscop.fr">visiter notre site</a> et à nous suivre
+sur <a href="https://twitter.com/stato_scop">Twitter</a> et <a href="https://www.linkedin.com/company/statoscop">Linkedin</a>. Pour
+retrouver l’ensemble du code ayant servi à générer cette note, vous
+pouvez vous rendre sur le <a href="https://github.com/Statoscop/notebooks-blog">github de
+Statoscop</a>.</p>
 </div>
 
 
