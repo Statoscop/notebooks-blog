@@ -356,10 +356,16 @@ display: none;
 
 
 <p>Dans cet article, on s’intéresse aux manières de coder des fonctions
-en utilisant la syntaxe du <code>tidyverse</code>. Si vous n’êtes pas à
-l’aise avec <code>dplyr</code> vous pouvez vous référer à <a href="https://blog.statoscop.fr/fonctionnement-et-performances-dacross-dans-dplyr.html">notre
-article sur <code>across</code></a> ou à celui sur la <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">comparaison
-entre base R, data.table et dplyr</a>.</p>
+en utilisant la syntaxe du <code>tidyverse</code>. Si vous ne voyez pas
+de quoi je veux parler c’est peut-être que vous devriez commencer par
+notre article sur la <a href="https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html">comparaison
+entre base R, data.table et dplyr</a>.<br />
+Après avoir rappelé quelques principes de l’évaluation non standard dans
+le tidyverse, on présente concrètement les manières de faire référence
+aux paramètres de notre fonction, qu’ils soient renseignés sous forme de
+symboles ou de chaînes de caractères. On termine avec des astuces pour
+coder des fonctions plus flexibles, notamment sans avoir à fixer le
+nombre de paramètres en amont.</p>
 <div id="le-tidyverse-et-lévaluation-non-standard" class="section level1">
 <h1>Le tidyverse et l’évaluation non standard</h1>
 <p>La syntaxe du <code>tidyverse</code> s’appuie sur des fonctions aux
@@ -461,8 +467,8 @@ notation de définir le paramètre en chaîne de caractères :</p>
 }
 my_filter(mtcars, x1 = &quot;mpg&quot;, seuil = 20)
 ## [1] 18</code></pre>
-<p>Mais si vous préférez l’ancienne notation, c’est la suivante et elle
-marche encore :</p>
+<p>Mais si vous préférez l’ancienne notation, pour les paramètres
+renseignés en chaînes de caractères c’est la suivante :</p>
 <pre class="r"><code>my_filter &lt;- function(data, x1, seuil){
   data |&gt; filter(!!sym(x1) &lt;= seuil) |&gt; nrow()
 }
@@ -501,15 +507,17 @@ entre guillemets. On peut également ajouter d’autres caractères. Enfin,
 <div id="coder-une-fonction-avec-nimporte-quel-nombre-de-paramètres" class="section level1">
 <h1>Coder une fonction avec n’importe quel nombre de paramètres</h1>
 <p>Essayons maintenant d’aller un peu plus loin! On explore dans cette
-partie des manières <strong>plus flexibles</strong> de coder nos
-fonctions, sans fixer à l’avance le nombre de paramètres.</p>
+partie <strong>des manières plus flexibles de coder nos
+fonctions</strong>, sans fixer à l’avance le nombre de paramètres.</p>
 <div id="lutilisation-dacross" class="section level2">
 <h2>L’utilisation d’<code>across</code></h2>
 <p>La solution la plus directe pour permettre à l’utilisateur de votre
 fonction de définir le nombre de paramètres qu’il souhaite est en
 général d’utiliser la puissance d’<code>across()</code>. On parle de
 manière détaillée de ce verbe dans <a href="https://blog.statoscop.fr/fonctionnement-et-performances-dacross-dans-dplyr.html">cet
-article</a>.<br />
+article de notre blog</a>. Vous pouvez également explorer toutes ses
+possibilités dans <a href="https://www.icem7.fr/r/across-plus-puissant-flexible-quil-ny-parait/">cet
+article du blog d’Icem7</a>.<br />
 Dans le cas d’une fonction, c’est aussi la syntaxe
 <code>{{ var }}</code> qui nous permettra de l’utiliser. Imaginez par
 exemple que vous souhaitiez créer une fonction permettant des
@@ -541,9 +549,9 @@ mean_multiple_var2(mtcars, vars_mean = c(&quot;mpg&quot;, &quot;disp&quot;, &quo
 ##        mpg     disp     qsec
 ## 1 20.09062 230.7219 17.84875</code></pre>
 <p>Notez qu’avec <code>any_of()</code>, on autorise l’utilisateur à
-entre des noms de colonnes n’existant pas dans le dataframe. Ils sont
-alors juste écartés de la sélection, sans que cela génère des erreurs
-:</p>
+entre <strong>des noms de colonnes n’existant pas dans le
+dataframe</strong>. Ils sont alors juste écartés de la sélection, sans
+que cela génère des erreurs :</p>
 <pre class="r"><code>mean_multiple_var3 &lt;- function(data, vars_mean){
   data |&gt; summarise(across(any_of(vars_mean), mean))
 }
@@ -560,9 +568,13 @@ mean_multiple_var2(mtcars, vars_mean = c(&quot;mpg&quot;, &quot;disp&quot;, &quo
 ##   mean_mpg mean_disp mean_qsec
 ## 1 20.09062  230.7219  17.84875</code></pre>
 <p>Dans cette version, l’utilisateur peut <strong>paramétrer le préfixe
-qu’il souhaite</strong>. Notez l’utilisation de .col, interne à
-across(), pour faire référence au nom de la variable ## Utilisation de
-<code>pick</code> et <code>...</code></p>
+qu’il souhaite</strong>, grâce à l’utilisation de la syntaxe propre au
+<a href="https://glue.tidyverse.org/">package <code>glue</code></a>.
+Notez l’utilisation de <code>.col</code>, interne à
+<code>across()</code>, pour faire référence au nom de la variable.</p>
+</div>
+<div id="utilisation-de-pick-et-..." class="section level2">
+<h2>Utilisation de <code>pick</code> et <code>...</code></h2>
 <p><code>pick()</code> (à partir de dplyr &gt;= 1.1.4) permet de
 sélectionner un nombre indéterminé de paramètres dans les fonctions du
 type <code>group_by()</code>, <code>select()</code>…c’est-à-dire les

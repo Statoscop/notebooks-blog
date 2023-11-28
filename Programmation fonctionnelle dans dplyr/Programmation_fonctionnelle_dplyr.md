@@ -9,7 +9,8 @@ output:
 
 
 
-Dans cet article, on s'intéresse aux manières de coder des fonctions en utilisant la syntaxe du `tidyverse`. Si vous n'êtes pas à l'aise avec `dplyr` vous pouvez vous référer à [notre article sur `across`](https://blog.statoscop.fr/fonctionnement-et-performances-dacross-dans-dplyr.html) ou à celui sur la [comparaison entre base R, data.table et dplyr](https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html).  
+Dans cet article, on s'intéresse aux manières de coder des fonctions en utilisant la syntaxe du `tidyverse`. Si vous ne voyez pas de quoi je veux parler c'est peut-être que vous devriez commencer par notre article sur la [comparaison entre base R, data.table et dplyr](https://blog.statoscop.fr/comparaisons-base-dplyr-datatable.html).   
+Après avoir rappelé quelques principes de l'évaluation non standard dans le tidyverse, on présente concrètement les manières de faire référence aux paramètres de notre fonction, qu'ils soient renseignés sous forme de symboles ou de chaînes de caractères. On termine avec des astuces pour coder des fonctions plus flexibles, notamment sans avoir à fixer le nombre de paramètres en amont.
 
 # Le tidyverse et l'évaluation non standard  
 
@@ -96,7 +97,7 @@ my_filter <- function(data, x1, seuil){
 my_filter(mtcars, x1 = "mpg", seuil = 20)
 ## [1] 18
 ```
-Mais si vous préférez l'ancienne notation, c'est la suivante et elle marche encore :  
+Mais si vous préférez l'ancienne notation, pour les paramètres renseignés en chaînes de caractères c'est la suivante :  
 
 ```r
 my_filter <- function(data, x1, seuil){
@@ -136,10 +137,10 @@ my_indic(mtcars, mpg, seuil = 20) |> count(mpg_indic)
 ```
 
 # Coder une fonction avec n'importe quel nombre de paramètres  
-Essayons maintenant d'aller un peu plus loin! On explore dans cette partie des manières __plus flexibles__ de coder nos fonctions, sans fixer à l'avance le nombre de paramètres.  
+Essayons maintenant d'aller un peu plus loin! On explore dans cette partie __des manières plus flexibles de coder nos fonctions__, sans fixer à l'avance le nombre de paramètres.  
 
 ## L'utilisation d'`across`  
-La solution la plus directe pour permettre à l'utilisateur de votre fonction de définir le nombre de paramètres qu'il souhaite est en général d'utiliser la puissance d'`across()`. On parle de manière détaillée de ce verbe dans [cet article](https://blog.statoscop.fr/fonctionnement-et-performances-dacross-dans-dplyr.html).  
+La solution la plus directe pour permettre à l'utilisateur de votre fonction de définir le nombre de paramètres qu'il souhaite est en général d'utiliser la puissance d'`across()`. On parle de manière détaillée de ce verbe dans [cet article de notre blog](https://blog.statoscop.fr/fonctionnement-et-performances-dacross-dans-dplyr.html). Vous pouvez également explorer toutes ses possibilités dans [cet article du blog d'Icem7](https://www.icem7.fr/r/across-plus-puissant-flexible-quil-ny-parait/).   
 Dans le cas d'une fonction, c'est aussi la syntaxe `{{ var }}` qui nous permettra de l'utiliser. Imaginez par exemple que vous souhaitiez créer une fonction permettant des statistiques sur un certain nombre de variables définies par l'utilisateur. Une telle fonction s'écrirait ainsi :  
 
 
@@ -173,7 +174,7 @@ mean_multiple_var2(mtcars, vars_mean = c("mpg", "disp", "qsec"))
 ## 1 20.09062 230.7219 17.84875
 ```
 
-Notez qu'avec `any_of()`, on autorise l'utilisateur à entre des noms de colonnes n'existant pas dans le dataframe. Ils sont alors juste écartés de la sélection, sans que cela génère des erreurs :  
+Notez qu'avec `any_of()`, on autorise l'utilisateur à entre __des noms de colonnes n'existant pas dans le dataframe__. Ils sont alors juste écartés de la sélection, sans que cela génère des erreurs :  
 
 
 ```r
@@ -196,7 +197,8 @@ mean_multiple_var2(mtcars, vars_mean = c("mpg", "disp", "qsec"))
 ##   mean_mpg mean_disp mean_qsec
 ## 1 20.09062  230.7219  17.84875
 ```
-Dans cette version, l'utilisateur peut __paramétrer le préfixe qu'il souhaite__. Notez l'utilisation de .col, interne à across(), pour faire référence au nom de la variable
+Dans cette version, l'utilisateur peut __paramétrer le préfixe qu'il souhaite__, grâce à l'utilisation de la syntaxe propre au [package `glue`](https://glue.tidyverse.org/). Notez l'utilisation de `.col`, interne à `across()`, pour faire référence au nom de la variable.  
+
 ## Utilisation de `pick` et `...`  
 
 `pick()` (à partir de dplyr >= 1.1.4) permet de sélectionner un nombre indéterminé de paramètres dans les fonctions du type `group_by()`, `select()`...c'est-à-dire les fonctions permettant de sélectionner un sous-ensemble de la base. C'est l'équivalent de `across()` pour les fonctions portant sur toute la base et non sur chacune des colonnes. Par exemple, la fonction suivante permet de grouper par des variables du choix de l'utilisateur et de sortir les moyennes de toutes les variables numériques :  
@@ -248,9 +250,9 @@ my_group_by(mtcars, am, cyl) |> head(3)
 ## # ℹ 2 more variables: mean_gear <dbl>, mean_carb <dbl>
 ```
 
-Cette notation a l'avantage d'être très simple et flexible : on peut définir à la place des `...` autant de paramètres différents que l'on veut. Mais elle ne permet pas de différencier deux groupes de paramètres différents, si l'on veut par exemple définir d'une part des variables sur lesquels grouper, et d'autre des variables sur lesquels sélectionner.   
+Cette notation a l'avantage d'être très simple et flexible : on peut définir à la place des `...` autant de paramètres différents que l'on veut. Mais elle ne permet pas de différencier deux groupes de paramètres différents, si l'on veut par exemple définir d'une part des variables sur lesquels grouper, et d'autre des variables sur lesquels sélectionner.     
 
-# Conclusion    
+# Conclusion   
 Le `tidyverse`, c'est donc plein d'astuces pour rendre le code très facile à écrire et à lire, mais cela implique quelques étapes supplémentaires quand on veut coder ses propres fonctions. On espère que cet article vous aura aidés à y voir plus clair. Pour creuser le sujet, vous pouvez vous référer à la page [Programming with dplyr](https://dplyr.tidyverse.org/articles/programming.html#user-supplied-data) sur la documentation officielle de `dplyr`. Vous pouvez également consulter, sur le site de `rlang`, les pages [Name injection](https://rlang.r-lib.org/reference/glue-operators.html) et [Data mask programming patterns](https://rlang.r-lib.org/reference/topic-data-mask-programming.html).  
 
 C'est la fin de cet article! N'hésitez pas à [visiter notre site](https://www.statoscop.fr) et à nous suivre sur [Twitter](https://twitter.com/stato_scop) et [Linkedin](https://www.linkedin.com/company/statoscop). Pour retrouver l'ensemble du code ayant servi à générer cette note, vous pouvez vous rendre sur le [github de Statoscop](https://github.com/Statoscop/notebooks-blog).   
