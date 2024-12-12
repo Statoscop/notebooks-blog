@@ -1,0 +1,146 @@
+---
+title: "Mon rapport dynamique"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    smooth-scroll: true
+execute:
+  echo: false
+---
+
+```{r}
+#| include: false
+
+# Librairies
+library(dplyr)
+library(ggplot2)
+
+# Thème et styles ggplot2
+options(ggplot2.discrete.colour = RColorBrewer::brewer.pal(11, "Set2"))
+options(ggplot2.discrete.fill = RColorBrewer::brewer.pal(11, "Set2"))
+theme_set(theme_bw())
+
+# Import de la base
+base_patients <- read.csv("base_fictive_patients.csv")
+```
+
+Ceci est un rapport visant à illustrer ce que l'on peut faire avec R et Quarto. Il s'appuie sur une base __complètement fictive__.  
+
+# Description des variables de ma base
+
+Voyons d'abord de quoi se compose notre base :
+
+```{r}
+str(base_patients)
+```
+
+On sort des statistiques sur les différentes variables :
+
+## Variables caractères
+
+::: panel-tabset
+### Sexe
+
+```{r}
+base_patients |> 
+  count(Sexe) |> 
+  mutate(Proportion = n / sum(n),
+         Proportion = glue::glue("{round(100 * Proportion)} %")) |> 
+  knitr::kable()
+```
+
+### Tabagisme
+
+```{r}
+base_patients |> 
+  count(Fumeur) |> 
+  mutate(Proportion = n / sum(n),
+         Proportion = glue::glue("{round(100 * Proportion)} %")) |> 
+  knitr::kable()
+```
+
+### Poids
+
+```{r}
+base_patients |> 
+  count(Poids) |> 
+  mutate(Proportion = n / sum(n),
+         Proportion = glue::glue("{round(100 * Proportion)} %")) |> 
+  knitr::kable()
+```
+:::
+
+## Variables numériques
+
+::: panel-tabset  
+
+```{r}
+#| results: asis
+# boucle sur les variables numériques
+for (var_num in names(base_patients |> select(where(is.numeric)))){
+  # titre de l'onglet
+  cat(glue::glue("### {var_num}"))  
+  cat("\n")
+  base_patients |> 
+    summarise(
+      across(all_of(var_num), list(Min = min,
+                                   Moyenne = mean,
+                                   Mediane = median,
+                                   Max = max),
+             .names = "{.fn}")) |> 
+    knitr::kable(format.args = list(digits = 2, nsmall = 2)) |> 
+    print()
+  # retour à la ligne
+  cat("\n")
+}
+
+```
+
+:::
+
+# Graphiques d'analyse  
+
+## Présence de la maladie et taux de potassium  
+
+Pour illustrer cela, on peut utiliser une boxplot avec un nuage de points pour se donner une idée de la distribution de la variable au sein des patients sains et malades :  
+
+```{r}
+#| label: fig-glucose
+#| fig-cap: "Taux de glucose et présence de la maladie"
+
+base_patients %>% 
+  ggplot(aes(x = factor(Maladie), y = Taux_de_glucose)) + 
+  geom_boxplot(aes(fill = factor(Maladie)), alpha = 0.4) + 
+  geom_jitter(aes(color = factor(Maladie)), size = 0.4, alpha = 0.9) + 
+  theme(legend.position = "none") + 
+   labs(x = "Présence de la maladie", 
+        y = "Taux de glucose")
+```
+
+## Prévalence de la maladie, poids et sexe  
+
+```{r}
+#| label: fig-sexe-poids
+#| fig-cap: "Sexe, poids et prévalence de la maladie"
+base_patients |> 
+  mutate(Poids = factor(Poids, c("Sous-poids", "Moyen", "Surpoids"))) |> 
+  group_by(Sexe, Poids) |> 
+  summarise(taux = mean(Maladie),
+            .groups = "drop") |> 
+  ggplot(aes(x = Poids, y = taux, fill = Sexe)) + 
+  geom_col(position = "dodge", width = 0.5) + 
+  scale_y_continuous(labels = ~ scales::percent(.)) + 
+  labs(x = "Poids", y = "Prévalence de la maladie")
+```
+
+Y'a-t-il un lien entre la prévalence de la maladie et les autres variables? La @fig-glucose semble montrer que les personnes malades ont des taux de glucose plus élevés que les non-malades. La @fig-sexe-poids semble montrer que les personnes en sous-poids et en surpoids sont plus touchées par la maladie, et que les femmes le sont plus que les hommes.  
+
+::: {.callout-note collapse="true"}   
+Pour rappel, cette note s'appuie sur des données complètement fictives et ne devrait pas révolutionner la recherche scientifique.
+:::  
+
+::: {.callout-caution}  
+L'utilisation des blocs d'annotation de Quarto peut être addictive, merci de ne pas en abuser.
+:::
+
