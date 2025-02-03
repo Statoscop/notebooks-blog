@@ -19,7 +19,7 @@ L'essai clinique randomisé, c'est donc l'idéal pour montrer un effet causal et
 
 # Principes du Propensity Score Matching
 
-L'appariement par score de propension vise à __recréer les conditions d'un essai clinique à partir de données observationnelles__. On a ainsi un ensemble de données avec par exemple un certain nombre de patients qui ont pris un traitement (le _groupe traitement_) et d'autres qui ne l'ont pas pris (le _groupe contrôle_). Problème : ces population qui n'ont pas été séparées de manière aléatoire __peuvent être très différentes__ et il n'est pas possible en l'état de conclure qu'une différence entre elles soit imputable au traitementen question. Il faut donc recréer deux groupes de contrôle et de traitement qui puissent être comparables.    
+L'appariement par score de propension vise à __recréer les conditions d'un essai clinique à partir de données observationnelles__. On a ainsi un ensemble de données avec par exemple un certain nombre de patients qui ont pris un traitement (le _groupe traitement_) et d'autres qui ne l'ont pas pris (le _groupe contrôle_). Problème : ces population qui n'ont pas été séparées de manière aléatoire __peuvent être très différentes__ et il n'est pas possible en l'état de conclure qu'une différence entre elles soit imputable au traitement en question. Il faut donc recréer deux groupes de contrôle et de traitement qui puissent être comparables.    
 
 ## Calcul du score de propension  
 
@@ -47,7 +47,7 @@ Les méthodes utilisant des scores de propension, et en particulier l'appariemen
 
 
 
-Nos données représentent 299 patients.  Parmi eux, la prévalence de cas d'hypertension artérielle est la suivante :  
+Nos données représentent 299 patients.  Parmi eux, la prévalence de cas d'hypertension artérielle (HTA) est la suivante :  
 
 
 Table: Présence de diabètes
@@ -70,23 +70,23 @@ Il y a 13 variables disponibles :
 ## [13] "death_event"
 ```
 
-On cherche ici à __évaluer l'impact de l'hypertension artérielle sur la probabilité de décéder des suites d'une insuffisance cardiaque__. Notre __variable d'intérêt__ est donc `death_event`. Notre _traitement_ (ici on ne regarde pas l'effet d'un traitement mais d'une caractéristique des patients, cependant on va continuer à utiliser cette terminologie) est ici le fait d'avoir une hypertension artérielle. Le croisement de ces deux variables donne le résultat suivant :  
+On cherche ici à __évaluer l'impact de l'HTA sur la probabilité de décéder des suites d'une insuffisance cardiaque__. Notre __variable d'intérêt__ est donc `death_event`. Notre _traitement_ (ici on ne regarde pas l'effet d'un traitement mais d'une caractéristique des patients, cependant on va continuer à utiliser cette terminologie) est ici le fait d'avoir une HTA. Le croisement de ces deux variables donne le résultat suivant :  
 
 
-Table: Hypertension artérielle et décès
+Table: HTA et décès
 
 |high_blood_pressure | Effectifs| Part de décès|
 |:-------------------|---------:|-------------:|
 |Non                 |       194|          0.29|
 |Oui                 |       105|          0.37|
 
-Ici à première vue on trouve une proportion plus importante de décès parmi les patients ayant une hypertension artérielle. Mais bien sûr, il n'est pas encore possible de __savoir si cela est dû à l'hypertension artérielle en soi ou à d'autres caractéristiques__ des patients souffrant de ce problème.
+Ici à première vue on trouve une proportion plus importante de décès parmi les patients ayant une HTA. Mais bien sûr, il n'est pas encore possible de __savoir si cela est dû à l'HTA en soi ou à d'autres caractéristiques__ des patients souffrant de ce problème.
 
 ## Calcul du score de propension et appariement des patients  
 
 
 
-La fonction `matchit` du package R `MatchIt` nous permet de __mettre directement en oeuvre le calcul du score de propension et l'appariement__. On commence par sélectionner les variables par lesquelles il nous semble important de contrôler : ici nous allons prendre l'ensemble des variables cliniques dont nous disposons. Il faut ensuite __retirer les valeurs manquantes__. On va ensuite essayer d'obtenir deux groupes de patients avec et sans hypertension artérielle ayant des caractéristiques semblables par ailleurs. La fonction s'écrit ainsi :  
+La fonction `matchit` du package R `MatchIt` nous permet de __mettre directement en oeuvre le calcul du score de propension et l'appariement__. On commence par sélectionner les variables par lesquelles il nous semble important de contrôler : ici nous allons prendre l'ensemble des variables cliniques dont nous disposons. Il faut alors __retirer les valeurs manquantes__ pour ensuite obtenir deux groupes de patients avec et sans HTA ayant des caractéristiques semblables par ailleurs. La fonction s'écrit ainsi :  
 
 
 ```r
@@ -99,8 +99,8 @@ m.out1 <- matchit(high_blood_pressure ~ age + sex + anaemia + creatinine_phospho
                   estimand = "ATT")
 ```
 
-Ici on choisit le paramétrage par défaut `method = "nearest"` qui apparie à chaque observation du __groupe traité__ (les patients ayant une hypertension artérielle) l'observation du __groupe contrôle__ ayant le score de propension le plus proche possible.
-Je précise avec le paramètre `method = "ATT"` que je souhaite évaluer un __effet du traitement sur les traités__ et non sur la population globale. Enfin, j'utilise une régression logistique (`distance = "glm"`) pour le calcul de mon score de propension. Si vous avez un doute sur la méthode à utiliser, [reportez-vous à la documentation du package MatchIT](https://cran.r-project.org/web/packages/MatchIt/vignettes/MatchIt.html) qui est très bien faite.
+Ici on choisit le paramétrage par défaut `method = "nearest"` qui apparie à chaque observation du __groupe traité__ (les patients ayant une HTA) l'observation du __groupe contrôle__ ayant le score de propension le plus proche possible.
+Le paramètre `method = "ATT"` permet d'évaluer un __effet du traitement sur les traités__ et non sur la population globale. Enfin, on définit le modèle (ici logistique avec avec `distance = "glm"`) pour le calcul du score de propension. Si vous avez un doute sur la méthode à utiliser, [reportez-vous à la documentation du package MatchIT](https://cran.r-project.org/web/packages/MatchIt/vignettes/MatchIt.html).
 
 ## Évaluation de la qualité de l'appariement
 
@@ -133,7 +133,7 @@ output_matching$sum.all |>
 |serum_sodium             |        136.85|        136.51|            0.08|       0.82|      0.01|     0.05|              NA|
 |smokingNon               |          0.71|          0.66|            0.12|         NA|      0.05|     0.05|              NA|
 |smokingOui               |          0.29|          0.34|           -0.12|         NA|      0.05|     0.05|              NA|
-on constate ainsi que les personnes souffrant d'hyper tension artérielle sont souvent plus âgées que les autres. Ce sont également plus souvent des femmes, et plus souvent des personnes atteintes d'anémie. Observons maintenant si notre appariement a permis d'équilibrer nos deux groupes sur ces variables et sur les autres :  
+On constate ainsi que les personnes souffrant d'hyper tension artérielle sont souvent plus âgées que les autres. Ce sont également plus souvent des femmes, et plus souvent des personnes atteintes d'anémie. Observons maintenant si notre appariement a permis d'équilibrer nos deux groupes sur ces variables et sur les autres :  
 
 
 ```r
@@ -160,7 +160,7 @@ output_matching$sum.matched |>
 |serum_sodium             |        136.85|        136.60|            0.06|       0.88|      0.01|     0.05|            1.07|
 |smokingNon               |          0.71|          0.74|           -0.06|         NA|      0.03|     0.03|            0.74|
 |smokingOui               |          0.29|          0.26|            0.06|         NA|      0.03|     0.03|            0.74|
-On constate que la plupârt des variables sont maintenant plus équilibrées entre les deux groupes. Au global, la variable `distance` montre la grande proximité du score de propension entre les deux groupes. On peut également mettre en évidence l'effet de l'appariement visuellement sur quelques unes des variables avec la fonction `plot` :  
+On constate que la plupart des variables sont maintenant plus équilibrées entre les deux groupes. Au global, la variable `distance` montre la grande proximité du score de propension entre les deux groupes. On peut également mettre en évidence l'effet de l'appariement visuellement sur quelques unes des variables avec la fonction `plot` :  
 
 
 ```r
@@ -172,11 +172,11 @@ plot(m.out1, type = "density", interactive = FALSE,
 
 ## Mesure des effets causaux à partir de la population appariée 
 
-Une fois que l'on s'est convaincus que l'appariement s'est opéré de manière satisfaisante, on peut maintenant mettre en oeuvre notre modèle statistique __en tenant compte du fait que nous avons maintenant des observations appariées__, ce dont il faut tenir compte pour le calcul de nos estimateurs. Différentes méthodes sont possibles en fonction du type de variable d'intérêt, du type d'appariement réalisé, etc. En cas de doute, vous pouvez vous reporter [à la vignette consacrée à l'estimation des effets du package `MatchIt`](https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#modeling-the-outcome).  
+Une fois convaincus de la qualité de l'appariement, on peut mettre en oeuvre notre modèle statistique __en tenant compte pour le calcul des estimateurs du fait que nous manipulons des observations appariées__. Différentes méthodes sont possibles en fonction de la variable d'intérêt, du type d'appariement réalisé, etc. En cas de doute, vous pouvez vous reporter [à la vignette consacrée à l'estimation des effets du package `MatchIt`](https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#modeling-the-outcome).  
 
-Dans notre cas classique, nous allons tout d'abord extraite les données appariées avec `match_data` et calibrer un modèle linéaire généralisé. Nous __pondérons avec les poids issus de l'appariement__. Dans notre cas, ils sont tous égaux à 1 et cela n'est pas nécessaire mais c'est une bonne habitude à prendre pour ne pas oublier de les faire en cas d'appariement utilisant des poids différents pour certaines méthodes d'appariement. Il possible également de __contrôler notre régression logistique par les variables ayant servi à l'appariement, ou directement par le score de propension__. Nous choisissons ici de ne pas le faire en raison de la bonne qualité de l'appariement. 
+Dans notre exemple simple, nous allons tout d'abord extraire les données appariées avec `match_data` et calibrer un modèle linéaire généralisé. Nous __pondérons avec les poids issus de l'appariement__. S'ils sont tous égaux à 1 (c'est le cas pour nous) cela n'est pas nécessaire. Toutefois, cela reste une bonne habitude en cas d'appariement utilisant des poids différents. Il possible également de __contrôler notre régression logistique par les variables ayant servi à l'appariement, ou directement par le score de propension__. Nous choisissons ici de ne pas le faire en raison de la bonne qualité de l'appariement. 
 
-Enfin, on utilise le package `marginaleffects` pour estimer notre __effet moyen sur les traités (ATT)__ en tenant compte du fait que nos observations ont été appariées.   
+Enfin, on utilise le package `marginaleffects` pour estimer l'__effet moyen sur les traités (ATT)__ en tenant compte l'appariement.   
 
 
 ```r
@@ -213,12 +213,12 @@ print(results) |>
 |:-------------------|:---------|--------:|---------:|---------:|-------:|-------:|--------:|---------:|------------:|------------:|---------:|
 |high_blood_pressure |Oui - Non |     0.05|      0.06|      0.76|    0.45|    1.16|    -0.08|      0.17|         0.32|         0.37|      0.37|
 
-Ici l'estimateur représente la __différence de proportions de décès__ entre le groupe traité (ceux avec hypertension artérielle) et le groupe contrôle (les autres). Elle est ici de 0.05, soit 5 points de pourcentage. En effet, les variables `predicted_low` et `predicted_hi` indiquent que lorsqu'on apparie, la part de décès dans le groupe contrôle monte à 32% (contre 29% dans l'ensemble des patients n'ayant pas de tension artérielle), alors qu'elle est de 37% dans le groupe traité. De fait, cette différence n'est pas significative, puisque la p-value est de 0.45 ([un autre de nos articles explique ce qu'est une p-value](https://blog.statoscop.fr/comprendre-et-interpreter-les-p-values.html)). Bien sûr, cela ne signifie pas forcément que cet effet n'existe pas, mais en tout cas on ne dispose pas dans nos données de suffisament d'observations pour affirmer ici que l'hypertension artérielle augmente signficativement la probabilité de décès.
+L'estimateur représente la __différence de proportions de décès__ entre le groupe traité (ceux avec HTA) et le groupe contrôle (les autres). Elle est ici de 0.05, soit 5 points de pourcentage. En effet, les variables `predicted_low` et `predicted_hi` indiquent que lorsqu'on apparie, la part de décès dans le groupe contrôle monte à 32% (contre 29% dans l'ensemble des patients n'ayant pas de tension artérielle), alors qu'elle est de 37% dans le groupe traité. De fait, cette différence n'est pas significative, puisque la p-value est de 0.45 ([un autre de nos articles explique ce qu'est une p-value](https://blog.statoscop.fr/comprendre-et-interpreter-les-p-values.html)). Bien sûr, cela ne signifie pas forcément que cet effet n'existe pas, mais en tout cas on ne dispose pas dans nos données de suffisament d'observations pour affirmer ici que l'HTA augmente signficativement la probabilité de décès.
 
 # Forces et limites des méthodes avec score de propension   
 
 De nombreuses questions se posent autour des méthodes de score de propension. La première est sans doute son avantage réel ou supposé par rapport à un modèle multivarié classique. Il est vrai cependant que cette méthode a l'avantage de capter dans une seule variable un ensemble de dimensions observables par lesquelles on souhaite contrôler notre analyse. Mais le fait, dans le cas de l'appariement, de se passer d'une partie des données pose question. Cela permet cependant de calculer __un effet moyen sur les traités (ATT)__ et de ne pas trop biaiser l'effet avec des observations qui auraient des caractéristiques très éloignées de la population traitée. De plus, la méthode de pondération par inverse de probabilité de traitement (IPTW) permet d'utiliser le score de propension sans écarter de données, et il est également possible d'estimer un ATT.  
 
-La plus grosse limite de cette méthode est sans doute le fait qu'elle pourrait faire oublier que nous n'avons rendu nos groupes de traitement et de contrôle comparables __seulement sur des caractéristiques observables__. Il n'est donc pas à exclure que des biais de sélection non observables polluent notre analyse, là où un essai clinique randomisé calibré correctement nous met normalement à l'abri de ce problème. Il est donc fondamental de garder constamment cet écueil en tête pour essayer d'anticiper les possibles défauts de nos analyses.  
+La plus grosse limite de cette méthode est sans doute le fait qu'elle pourrait faire oublier que nos groupes de traitement et de contrôle sont comparables __uniquement sur des caractéristiques observables__. Il n'est donc pas à exclure que des biais de sélection non observables polluent notre analyse, là où un essai clinique randomisé calibré correctement met normalement à l'abri de ce problème. Il est donc fondamental de garder constamment cet écueil en tête pour essayer d'anticiper les possibles défauts de nos analyses.  
 
 C'est tout pour aujourd'hui! Si vous cherchez des [statisticiens pour vos études cliniques n'hésitez pas à visiter notre site](https://www.statoscop.fr) et à nous suivre sur [Twitter](https://twitter.com/stato_scop) et [Linkedin](https://www.linkedin.com/company/statoscop). Pour retrouver le code ayant servi à générer cette note, vous pouvez vous rendre sur le [github de Statoscop](https://github.com/Statoscop/notebooks-blog).  

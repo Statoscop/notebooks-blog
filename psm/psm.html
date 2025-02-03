@@ -417,7 +417,7 @@ exemple un certain nombre de patients qui ont pris un traitement (le
 <em>groupe contrôle</em>). Problème : ces population qui n’ont pas été
 séparées de manière aléatoire <strong>peuvent être très
 différentes</strong> et il n’est pas possible en l’état de conclure
-qu’une différence entre elles soit imputable au traitementen question.
+qu’une différence entre elles soit imputable au traitement en question.
 Il faut donc recréer deux groupes de contrôle et de traitement qui
 puissent être comparables.</p>
 <div id="calcul-du-score-de-propension" class="section level2">
@@ -483,7 +483,7 @@ pour une insuffisance cardiaque.</p>
 <div id="description-des-données-et-de-notre-problématique" class="section level2">
 <h2>Description des données et de notre problématique</h2>
 <p>Nos données représentent 299 patients. Parmi eux, la prévalence de
-cas d’hypertension artérielle est la suivante :</p>
+cas d’hypertension artérielle (HTA) est la suivante :</p>
 <table>
 <caption>Présence de diabètes</caption>
 <thead>
@@ -511,16 +511,15 @@ cas d’hypertension artérielle est la suivante :</p>
 ##  [9] &quot;serum_sodium&quot;             &quot;sex&quot;                     
 ## [11] &quot;smoking&quot;                  &quot;time&quot;                    
 ## [13] &quot;death_event&quot;</code></pre>
-<p>On cherche ici à <strong>évaluer l’impact de l’hypertension
-artérielle sur la probabilité de décéder des suites d’une insuffisance
-cardiaque</strong>. Notre <strong>variable d’intérêt</strong> est donc
-<code>death_event</code>. Notre <em>traitement</em> (ici on ne regarde
-pas l’effet d’un traitement mais d’une caractéristique des patients,
-cependant on va continuer à utiliser cette terminologie) est ici le fait
-d’avoir une hypertension artérielle. Le croisement de ces deux variables
-donne le résultat suivant :</p>
+<p>On cherche ici à <strong>évaluer l’impact de l’HTA sur la probabilité
+de décéder des suites d’une insuffisance cardiaque</strong>. Notre
+<strong>variable d’intérêt</strong> est donc <code>death_event</code>.
+Notre <em>traitement</em> (ici on ne regarde pas l’effet d’un traitement
+mais d’une caractéristique des patients, cependant on va continuer à
+utiliser cette terminologie) est ici le fait d’avoir une HTA. Le
+croisement de ces deux variables donne le résultat suivant :</p>
 <table>
-<caption>Hypertension artérielle et décès</caption>
+<caption>HTA et décès</caption>
 <thead>
 <tr class="header">
 <th align="left">high_blood_pressure</th>
@@ -542,10 +541,9 @@ donne le résultat suivant :</p>
 </tbody>
 </table>
 <p>Ici à première vue on trouve une proportion plus importante de décès
-parmi les patients ayant une hypertension artérielle. Mais bien sûr, il
-n’est pas encore possible de <strong>savoir si cela est dû à
-l’hypertension artérielle en soi ou à d’autres caractéristiques</strong>
-des patients souffrant de ce problème.</p>
+parmi les patients ayant une HTA. Mais bien sûr, il n’est pas encore
+possible de <strong>savoir si cela est dû à l’HTA en soi ou à d’autres
+caractéristiques</strong> des patients souffrant de ce problème.</p>
 </div>
 <div id="calcul-du-score-de-propension-et-appariement-des-patients" class="section level2">
 <h2>Calcul du score de propension et appariement des patients</h2>
@@ -554,10 +552,10 @@ nous permet de <strong>mettre directement en oeuvre le calcul du score
 de propension et l’appariement</strong>. On commence par sélectionner
 les variables par lesquelles il nous semble important de contrôler : ici
 nous allons prendre l’ensemble des variables cliniques dont nous
-disposons. Il faut ensuite <strong>retirer les valeurs
-manquantes</strong>. On va ensuite essayer d’obtenir deux groupes de
-patients avec et sans hypertension artérielle ayant des caractéristiques
-semblables par ailleurs. La fonction s’écrit ainsi :</p>
+disposons. Il faut alors <strong>retirer les valeurs manquantes</strong>
+pour ensuite obtenir deux groupes de patients avec et sans HTA ayant des
+caractéristiques semblables par ailleurs. La fonction s’écrit ainsi
+:</p>
 <pre class="r"><code>library(MatchIt)
 m.out1 &lt;- matchit(high_blood_pressure ~ age + sex + anaemia + creatinine_phosphokinase + diabetes + 
                     platelets + serum_creatinine + serum_sodium + smoking, 
@@ -567,15 +565,15 @@ m.out1 &lt;- matchit(high_blood_pressure ~ age + sex + anaemia + creatinine_phos
                   estimand = &quot;ATT&quot;)</code></pre>
 <p>Ici on choisit le paramétrage par défaut
 <code>method = &quot;nearest&quot;</code> qui apparie à chaque observation du
-<strong>groupe traité</strong> (les patients ayant une hypertension
-artérielle) l’observation du <strong>groupe contrôle</strong> ayant le
-score de propension le plus proche possible. Je précise avec le
-paramètre <code>method = &quot;ATT&quot;</code> que je souhaite évaluer un
-<strong>effet du traitement sur les traités</strong> et non sur la
-population globale. Enfin, j’utilise une régression logistique
-(<code>distance = &quot;glm&quot;</code>) pour le calcul de mon score de
-propension. Si vous avez un doute sur la méthode à utiliser, <a href="https://cran.r-project.org/web/packages/MatchIt/vignettes/MatchIt.html">reportez-vous
-à la documentation du package MatchIT</a> qui est très bien faite.</p>
+<strong>groupe traité</strong> (les patients ayant une HTA)
+l’observation du <strong>groupe contrôle</strong> ayant le score de
+propension le plus proche possible. Le paramètre
+<code>method = &quot;ATT&quot;</code> permet d’évaluer un <strong>effet du
+traitement sur les traités</strong> et non sur la population globale.
+Enfin, on définit le modèle (ici logistique avec avec
+<code>distance = &quot;glm&quot;</code>) pour le calcul du score de propension. Si
+vous avez un doute sur la méthode à utiliser, <a href="https://cran.r-project.org/web/packages/MatchIt/vignettes/MatchIt.html">reportez-vous
+à la documentation du package MatchIT</a>.</p>
 </div>
 <div id="évaluation-de-la-qualité-de-lappariement" class="section level2">
 <h2>Évaluation de la qualité de l’appariement</h2>
@@ -755,7 +753,7 @@ output_matching$sum.all |&gt;
 </tr>
 </tbody>
 </table>
-<p>on constate ainsi que les personnes souffrant d’hyper tension
+<p>On constate ainsi que les personnes souffrant d’hyper tension
 artérielle sont souvent plus âgées que les autres. Ce sont également
 plus souvent des femmes, et plus souvent des personnes atteintes
 d’anémie. Observons maintenant si notre appariement a permis
@@ -929,7 +927,7 @@ output_matching$sum.matched |&gt;
 </tr>
 </tbody>
 </table>
-<p>On constate que la plupârt des variables sont maintenant plus
+<p>On constate que la plupart des variables sont maintenant plus
 équilibrées entre les deux groupes. Au global, la variable
 <code>distance</code> montre la grande proximité du score de propension
 entre les deux groupes. On peut également mettre en évidence l’effet de
@@ -941,29 +939,27 @@ fonction <code>plot</code> :</p>
 </div>
 <div id="mesure-des-effets-causaux-à-partir-de-la-population-appariée" class="section level2">
 <h2>Mesure des effets causaux à partir de la population appariée</h2>
-<p>Une fois que l’on s’est convaincus que l’appariement s’est opéré de
-manière satisfaisante, on peut maintenant mettre en oeuvre notre modèle
-statistique <strong>en tenant compte du fait que nous avons maintenant
-des observations appariées</strong>, ce dont il faut tenir compte pour
-le calcul de nos estimateurs. Différentes méthodes sont possibles en
-fonction du type de variable d’intérêt, du type d’appariement réalisé,
-etc. En cas de doute, vous pouvez vous reporter <a href="https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#modeling-the-outcome">à
+<p>Une fois convaincus de la qualité de l’appariement, on peut mettre en
+oeuvre notre modèle statistique <strong>en tenant compte pour le calcul
+des estimateurs du fait que nous manipulons des observations
+appariées</strong>. Différentes méthodes sont possibles en fonction de
+la variable d’intérêt, du type d’appariement réalisé, etc. En cas de
+doute, vous pouvez vous reporter <a href="https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#modeling-the-outcome">à
 la vignette consacrée à l’estimation des effets du package
 <code>MatchIt</code></a>.</p>
-<p>Dans notre cas classique, nous allons tout d’abord extraite les
+<p>Dans notre exemple simple, nous allons tout d’abord extraire les
 données appariées avec <code>match_data</code> et calibrer un modèle
 linéaire généralisé. Nous <strong>pondérons avec les poids issus de
-l’appariement</strong>. Dans notre cas, ils sont tous égaux à 1 et cela
-n’est pas nécessaire mais c’est une bonne habitude à prendre pour ne pas
-oublier de les faire en cas d’appariement utilisant des poids différents
-pour certaines méthodes d’appariement. Il possible également de
-<strong>contrôler notre régression logistique par les variables ayant
-servi à l’appariement, ou directement par le score de
-propension</strong>. Nous choisissons ici de ne pas le faire en raison
-de la bonne qualité de l’appariement.</p>
+l’appariement</strong>. S’ils sont tous égaux à 1 (c’est le cas pour
+nous) cela n’est pas nécessaire. Toutefois, cela reste une bonne
+habitude en cas d’appariement utilisant des poids différents. Il
+possible également de <strong>contrôler notre régression logistique par
+les variables ayant servi à l’appariement, ou directement par le score
+de propension</strong>. Nous choisissons ici de ne pas le faire en
+raison de la bonne qualité de l’appariement.</p>
 <p>Enfin, on utilise le package <code>marginaleffects</code> pour
-estimer notre <strong>effet moyen sur les traités (ATT)</strong> en
-tenant compte du fait que nos observations ont été appariées.</p>
+estimer l’<strong>effet moyen sur les traités (ATT)</strong> en tenant
+compte l’appariement.</p>
 <pre class="r"><code>data_matched &lt;- match_data(m.out1)
 
 fit &lt;- glm(death_event ~ high_blood_pressure,
@@ -1034,21 +1030,20 @@ print(results) |&gt;
 </tr>
 </tbody>
 </table>
-<p>Ici l’estimateur représente la <strong>différence de proportions de
-décès</strong> entre le groupe traité (ceux avec hypertension
-artérielle) et le groupe contrôle (les autres). Elle est ici de 0.05,
-soit 5 points de pourcentage. En effet, les variables
-<code>predicted_low</code> et <code>predicted_hi</code> indiquent que
-lorsqu’on apparie, la part de décès dans le groupe contrôle monte à 32%
-(contre 29% dans l’ensemble des patients n’ayant pas de tension
-artérielle), alors qu’elle est de 37% dans le groupe traité. De fait,
-cette différence n’est pas significative, puisque la p-value est de 0.45
-(<a href="https://blog.statoscop.fr/comprendre-et-interpreter-les-p-values.html">un
+<p>L’estimateur représente la <strong>différence de proportions de
+décès</strong> entre le groupe traité (ceux avec HTA) et le groupe
+contrôle (les autres). Elle est ici de 0.05, soit 5 points de
+pourcentage. En effet, les variables <code>predicted_low</code> et
+<code>predicted_hi</code> indiquent que lorsqu’on apparie, la part de
+décès dans le groupe contrôle monte à 32% (contre 29% dans l’ensemble
+des patients n’ayant pas de tension artérielle), alors qu’elle est de
+37% dans le groupe traité. De fait, cette différence n’est pas
+significative, puisque la p-value est de 0.45 (<a href="https://blog.statoscop.fr/comprendre-et-interpreter-les-p-values.html">un
 autre de nos articles explique ce qu’est une p-value</a>). Bien sûr,
 cela ne signifie pas forcément que cet effet n’existe pas, mais en tout
 cas on ne dispose pas dans nos données de suffisament d’observations
-pour affirmer ici que l’hypertension artérielle augmente
-signficativement la probabilité de décès.</p>
+pour affirmer ici que l’HTA augmente signficativement la probabilité de
+décès.</p>
 </div>
 </div>
 <div id="forces-et-limites-des-méthodes-avec-score-de-propension" class="section level1">
@@ -1067,12 +1062,12 @@ pondération par inverse de probabilité de traitement (IPTW) permet
 d’utiliser le score de propension sans écarter de données, et il est
 également possible d’estimer un ATT.</p>
 <p>La plus grosse limite de cette méthode est sans doute le fait qu’elle
-pourrait faire oublier que nous n’avons rendu nos groupes de traitement
-et de contrôle comparables <strong>seulement sur des caractéristiques
+pourrait faire oublier que nos groupes de traitement et de contrôle sont
+comparables <strong>uniquement sur des caractéristiques
 observables</strong>. Il n’est donc pas à exclure que des biais de
 sélection non observables polluent notre analyse, là où un essai
-clinique randomisé calibré correctement nous met normalement à l’abri de
-ce problème. Il est donc fondamental de garder constamment cet écueil en
+clinique randomisé calibré correctement met normalement à l’abri de ce
+problème. Il est donc fondamental de garder constamment cet écueil en
 tête pour essayer d’anticiper les possibles défauts de nos analyses.</p>
 <p>C’est tout pour aujourd’hui! Si vous cherchez des <a href="https://www.statoscop.fr">statisticiens pour vos études cliniques
 n’hésitez pas à visiter notre site</a> et à nous suivre sur <a href="https://twitter.com/stato_scop">Twitter</a> et <a href="https://www.linkedin.com/company/statoscop">Linkedin</a>. Pour
