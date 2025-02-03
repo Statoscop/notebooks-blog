@@ -15,15 +15,15 @@ library(dplyr)
 ```
 
 Pour évaluer un effet causal, comme par exemple les effets d'un médicament sur des patients, on a besoin de ce que l'on appelle un __essai clinique randomisé__. Le principe est le suivant : on prend un certain nombre de patients (à déterminer en fonction de l'effet minimum attendu, mais c'est un autre sujet) et on les sépare aléatoirement en deux groupes : __un groupe traitement__ qui prend le médicament et __un groupe contrôle__ qui en général prend un placebo.  
-Comme on a décidé de manière complètement aléatoire l'assignation à l'un ou l'autre groupe, on sait que ces deux groupes auront en moyenne des caractéristiques identiques (c'est la loi faible des grands nombres). Cela nous permet de conclure que les différences qui seraient observées entre les deux groupes (meilleur rétablissement, prise de poids, selon ce qu'on cherche à observer...) __sont imputables au traitement et non à une spécificité d'un des groupes par rapport à l'autre__.  
+Comme on a décidé de manière complètement aléatoire l'assignation à l'un ou l'autre groupe, on sait que ces deux groupes auront en moyenne des caractéristiques identiques (merci la loi faible des grands nombres!). Cela nous permet de conclure que les différences qui seraient observées entre les deux groupes (meilleur rétablissement, prise de poids, selon ce qu'on cherche à observer...) __sont imputables au traitement et non à une spécificité d'un des groupes par rapport à l'autre__.  
 
-L'essai clinique randomisé, c'est donc l'idéal pour montrer un effet causal et c'est d'ailleurs par là qu'il faut passer si vous souhaitez homologuer un nouveau médicament. Mais c'est aussi coûteux et difficile à réaliser. C'est pourquoi on cherche de plus en plus à essayer d'imiter les conditions d'un essai clinique randomisé __à partir de données observationnelles__. Pour cette note de blog, on va vous présenter une ces méthodes : le __propensity score matching (PSM)__ ou appariement par score de propension.  
+L'essai clinique randomisé, c'est donc l'idéal pour montrer un effet causal et c'est d'ailleurs par là qu'il faut passer si vous souhaitez homologuer un nouveau médicament. Mais c'est aussi coûteux et difficile à réaliser. C'est pourquoi on cherche de plus en plus à essayer __d'imiter les conditions d'un essai clinique randomisé à partir de données observationnelles__. Pour cette note de blog, on va vous présenter une ces méthodes : le __propensity score matching (PSM), ou appariement par score de propension__.  
 
 [TOC]\  
 
 # Principes du Propensity Score Matching
 
-L'appariement par score de propension (PSM) vise à __recréer les conditions d'un essai clinique à partir de données observationnelles__. On a ainsi un ensemble de données avec par exemple un certain nombre de patients qui ont pris un médicament et d'autres qui ne l'ont pas pris. Problème : ces population qui n'ont pas été séparées de manière aléatoire __peuvent être très différentes__ et il n'est pas possible en l'état de conclure qu'une différence entre elles soit imputable au médicament en question. Il faut donc recréer deux groupes de contrôle et de traitement qui puissent être comparables.    
+L'appariement par score de propension vise à __recréer les conditions d'un essai clinique à partir de données observationnelles__. On a ainsi un ensemble de données avec par exemple un certain nombre de patients qui ont pris un traitement (le _groupe traitement_) et d'autres qui ne l'ont pas pris (le _groupe contrôle_). Problème : ces population qui n'ont pas été séparées de manière aléatoire __peuvent être très différentes__ et il n'est pas possible en l'état de conclure qu'une différence entre elles soit imputable au traitementen question. Il faut donc recréer deux groupes de contrôle et de traitement qui puissent être comparables.    
 
 ## Calcul du score de propension  
 
@@ -37,7 +37,7 @@ Une fois ces variables identifiées, il ne vous reste plus qu'à faire __sur l'e
 
 ## Appariement de vos données  
 
-La mise en oeuvre de cette régression logistique nous permet __d'obtenir un score de propension__. Celui-ci représente pour chaque individu la probabilité prédite qu'il appartienne au groupe traitement. Ce score de propension peut-être utilisé dans différentes méthodes (IPTW, variable d'ajustement dans la modèle...). Pour le PSM, nous l'utilisons pour _apparier les données__.  
+La mise en oeuvre de cette régression logistique nous permet __d'obtenir un score de propension__. Celui-ci représente pour chaque individu la probabilité prédite qu'il appartienne au groupe traitement. Ce score de propension peut-être utilisé dans différentes méthodes (IPTW, variable d'ajustement dans la modèle...). Pour le PSM, nous l'utilisons pour __apparier les données__.  
 
 En effet, pour chaque observation du groupe traité, l'idée est de lui attribuer une (ou plusieurs, selon vos données) observation(s) du groupe contrôle, ayant __un score de propension le plus proche possible__, donc des caractéristiques semblables. Différentes méthodes d'appariement existent, la plus courante étant celle du plus proche voisin.  
 
@@ -45,7 +45,7 @@ Une fois que chaque observation du groupe traitement s'est vu attribuer son plus
 
 # Mise en oeuvre de l'appariement par score de propension avec R  
 
-Les méthodes utilisant des scores de propension, et en particulier l'appariement par score de propension, sont très bien prises en charge avec R. Nous vous proposons ici d'utiliser le package R `MatchIt` sur des [données cliniques librement accessibles](https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records). Il s'agit de patients ayant eu une insuffisance cardiaque.  
+Les méthodes utilisant des scores de propension, et en particulier l'appariement par score de propension, sont très bien prises en charge avec R. Nous vous proposons ici d'utiliser le package R `MatchIt` sur des [données cliniques librement accessibles](https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records). Il s'agit de patients hospitalisés pour une insuffisance cardiaque.  
 
 ## Description des données et de notre problématique  
 
@@ -93,7 +93,7 @@ data_ps <- data_interest |>
 
 La fonction `matchit` du package R `MatchIt` nous permet de __mettre directement en oeuvre le calcul du score de propension et l'appariement__. On commence par sélectionner les variables par lesquelles il nous semble important de contrôler : ici nous allons prendre l'ensemble des variables cliniques dont nous disposons. Il faut ensuite __retirer les valeurs manquantes__. On va ensuite essayer d'obtenir deux groupes de patients avec et sans hypertension artérielle ayant des caractéristiques semblables par ailleurs. La fonction s'écrit ainsi :  
 
-```{r}
+```{r echo=TRUE}
 library(MatchIt)
 m.out1 <- matchit(high_blood_pressure ~ age + sex + anaemia + creatinine_phosphokinase + diabetes + 
                     platelets + serum_creatinine + serum_sodium + smoking, 
@@ -110,7 +110,7 @@ Je précise avec le paramètre `method = "ATT"` que je souhaite évaluer un __ef
 
 Encore une fois, la librairie `MatchIt` nous mâche directement le travail en nous permettant de comparer facilement la __répartition de nos patients avant et après appariement__ avec `summary()`. La __répartition avant l'appariement__ est la suivante :  
 
-```{r}
+```{r echo=TRUE}
 output_matching <- summary(m.out1)
 
 # on affiche seulemet l'élément `sum.all` de la sortie
@@ -119,14 +119,14 @@ output_matching$sum.all |>
 ```
 on constate ainsi que les personnes souffrant d'hyper tension artérielle sont souvent plus âgées que les autres. Ce sont également plus souvent des femmes, et plus souvent des personnes atteintes d'anémie. Observons maintenant si notre appariement a permis d'équilibrer nos deux groupes sur ces variables et sur les autres :  
 
-```{r}
+```{r echo=TRUE}
 # on affiche seulement l'élément `sum.matched` de la sortie
 output_matching$sum.matched |> 
   knitr::kable(digits = 2)
 ```
 On constate que la plupârt des variables sont maintenant plus équilibrées entre les deux groupes. Au global, la variable `distance` montre la grande proximité du score de propension entre les deux groupes. On peut également mettre en évidence l'effet de l'appariement visuellement sur quelques unes des variables avec la fonction `plot` :  
 
-```{r}
+```{r echo=TRUE}
 plot(m.out1, type = "density", interactive = FALSE,
      which.xs = ~ age + anaemia + sex)
 ```
@@ -139,7 +139,7 @@ Dans notre cas classique, nous allons tout d'abord extraite les données appari�
 
 Enfin, on utilise le package `marginaleffects` pour estimer notre __effet moyen sur les traités (ATT)__ en tenant compte du fait que nos observations ont été appariées.   
 
-```{r}
+```{r echo=TRUE}
 data_matched <- match_data(m.out1)
 
 fit <- glm(death_event ~ high_blood_pressure,
@@ -157,15 +157,6 @@ print(results) |>
 ```
 
 Ici l'estimateur représente la __différence de proportions de décès__ entre le groupe traité (ceux avec hypertension artérielle) et le groupe contrôle (les autres). Elle est ici de 0.05, soit 5 points de pourcentage. En effet, les variables `predicted_low` et `predicted_hi` indiquent que lorsqu'on apparie, la part de décès dans le groupe contrôle monte à 32% (contre 29% dans l'ensemble des patients n'ayant pas de tension artérielle), alors qu'elle est de 37% dans le groupe traité. De fait, cette différence n'est pas significative, puisque la p-value est de 0.45 ([un autre de nos articles explique ce qu'est une p-value](https://blog.statoscop.fr/comprendre-et-interpreter-les-p-values.html)). Bien sûr, cela ne signifie pas forcément que cet effet n'existe pas, mais en tout cas on ne dispose pas dans nos données de suffisament d'observations pour affirmer ici que l'hypertension artérielle augmente signficativement la probabilité de décès.
-
-```{r}
-fit <- glm(death_event ~ high_blood_pressure + age + sex + anaemia + 
-             creatinine_phosphokinase + diabetes + platelets + 
-             serum_creatinine + serum_sodium + smoking,
-          data = data_interest,
-          family = binomial)
-summary(fit)
-```
 
 # Forces et limites des méthodes avec score de propension   
 

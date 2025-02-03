@@ -392,7 +392,7 @@ qui prend le médicament et <strong>un groupe contrôle</strong> qui en
 général prend un placebo.<br />
 Comme on a décidé de manière complètement aléatoire l’assignation à l’un
 ou l’autre groupe, on sait que ces deux groupes auront en moyenne des
-caractéristiques identiques (c’est la loi faible des grands nombres).
+caractéristiques identiques (merci la loi faible des grands nombres!).
 Cela nous permet de conclure que les différences qui seraient observées
 entre les deux groupes (meilleur rétablissement, prise de poids, selon
 ce qu’on cherche à observer…) <strong>sont imputables au traitement et
@@ -401,22 +401,23 @@ l’autre</strong>.</p>
 <p>L’essai clinique randomisé, c’est donc l’idéal pour montrer un effet
 causal et c’est d’ailleurs par là qu’il faut passer si vous souhaitez
 homologuer un nouveau médicament. Mais c’est aussi coûteux et difficile
-à réaliser. C’est pourquoi on cherche de plus en plus à essayer d’imiter
-les conditions d’un essai clinique randomisé <strong>à partir de données
-observationnelles</strong>. Pour cette note de blog, on va vous
-présenter une ces méthodes : le <strong>propensity score matching
-(PSM)</strong> ou appariement par score de propension.</p>
+à réaliser. C’est pourquoi on cherche de plus en plus à essayer
+<strong>d’imiter les conditions d’un essai clinique randomisé à partir
+de données observationnelles</strong>. Pour cette note de blog, on va
+vous présenter une ces méthodes : le <strong>propensity score matching
+(PSM), ou appariement par score de propension</strong>.</p>
 <p>[TOC] </p>
 <div id="principes-du-propensity-score-matching" class="section level1">
 <h1>Principes du Propensity Score Matching</h1>
-<p>L’appariement par score de propension (PSM) vise à <strong>recréer
-les conditions d’un essai clinique à partir de données
+<p>L’appariement par score de propension vise à <strong>recréer les
+conditions d’un essai clinique à partir de données
 observationnelles</strong>. On a ainsi un ensemble de données avec par
-exemple un certain nombre de patients qui ont pris un médicament et
-d’autres qui ne l’ont pas pris. Problème : ces population qui n’ont pas
-été séparées de manière aléatoire <strong>peuvent être très
+exemple un certain nombre de patients qui ont pris un traitement (le
+<em>groupe traitement</em>) et d’autres qui ne l’ont pas pris (le
+<em>groupe contrôle</em>). Problème : ces population qui n’ont pas été
+séparées de manière aléatoire <strong>peuvent être très
 différentes</strong> et il n’est pas possible en l’état de conclure
-qu’une différence entre elles soit imputable au médicament en question.
+qu’une différence entre elles soit imputable au traitementen question.
 Il faut donc recréer deux groupes de contrôle et de traitement qui
 puissent être comparables.</p>
 <div id="calcul-du-score-de-propension" class="section level2">
@@ -455,7 +456,7 @@ formule est la suivante :</p>
 pour chaque individu la probabilité prédite qu’il appartienne au groupe
 traitement. Ce score de propension peut-être utilisé dans différentes
 méthodes (IPTW, variable d’ajustement dans la modèle…). Pour le PSM,
-nous l’utilisons pour _apparier les données__.</p>
+nous l’utilisons pour <strong>apparier les données</strong>.</p>
 <p>En effet, pour chaque observation du groupe traité, l’idée est de lui
 attribuer une (ou plusieurs, selon vos données) observation(s) du groupe
 contrôle, ayant <strong>un score de propension le plus proche
@@ -477,8 +478,8 @@ essai clinique randomisé, ou presque…</p>
 l’appariement par score de propension, sont très bien prises en charge
 avec R. Nous vous proposons ici d’utiliser le package R
 <code>MatchIt</code> sur des <a href="https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records">données
-cliniques librement accessibles</a>. Il s’agit de patients ayant eu une
-insuffisance cardiaque.</p>
+cliniques librement accessibles</a>. Il s’agit de patients hospitalisés
+pour une insuffisance cardiaque.</p>
 <div id="description-des-données-et-de-notre-problématique" class="section level2">
 <h2>Description des données et de notre problématique</h2>
 <p>Nos données représentent 299 patients. Parmi eux, la prévalence de
@@ -557,6 +558,13 @@ disposons. Il faut ensuite <strong>retirer les valeurs
 manquantes</strong>. On va ensuite essayer d’obtenir deux groupes de
 patients avec et sans hypertension artérielle ayant des caractéristiques
 semblables par ailleurs. La fonction s’écrit ainsi :</p>
+<pre class="r"><code>library(MatchIt)
+m.out1 &lt;- matchit(high_blood_pressure ~ age + sex + anaemia + creatinine_phosphokinase + diabetes + 
+                    platelets + serum_creatinine + serum_sodium + smoking, 
+                  data = data_ps,
+                  method = &quot;nearest&quot;,
+                  distance = &quot;glm&quot;,
+                  estimand = &quot;ATT&quot;)</code></pre>
 <p>Ici on choisit le paramétrage par défaut
 <code>method = &quot;nearest&quot;</code> qui apparie à chaque observation du
 <strong>groupe traité</strong> (les patients ayant une hypertension
@@ -576,6 +584,11 @@ directement le travail en nous permettant de comparer facilement la
 <strong>répartition de nos patients avant et après appariement</strong>
 avec <code>summary()</code>. La <strong>répartition avant
 l’appariement</strong> est la suivante :</p>
+<pre class="r"><code>output_matching &lt;- summary(m.out1)
+
+# on affiche seulemet l&#39;élément `sum.all` de la sortie
+output_matching$sum.all |&gt; 
+  knitr::kable(digits = 2)</code></pre>
 <table style="width:100%;">
 <colgroup>
 <col width="21%" />
@@ -747,6 +760,9 @@ artérielle sont souvent plus âgées que les autres. Ce sont également
 plus souvent des femmes, et plus souvent des personnes atteintes
 d’anémie. Observons maintenant si notre appariement a permis
 d’équilibrer nos deux groupes sur ces variables et sur les autres :</p>
+<pre class="r"><code># on affiche seulement l&#39;élément `sum.matched` de la sortie
+output_matching$sum.matched |&gt; 
+  knitr::kable(digits = 2)</code></pre>
 <table style="width:100%;">
 <colgroup>
 <col width="21%" />
@@ -919,6 +935,8 @@ d’équilibrer nos deux groupes sur ces variables et sur les autres :</p>
 entre les deux groupes. On peut également mettre en évidence l’effet de
 l’appariement visuellement sur quelques unes des variables avec la
 fonction <code>plot</code> :</p>
+<pre class="r"><code>plot(m.out1, type = &quot;density&quot;, interactive = FALSE,
+     which.xs = ~ age + anaemia + sex)</code></pre>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
 </div>
 <div id="mesure-des-effets-causaux-à-partir-de-la-population-appariée" class="section level2">
@@ -946,6 +964,20 @@ de la bonne qualité de l’appariement.</p>
 <p>Enfin, on utilise le package <code>marginaleffects</code> pour
 estimer notre <strong>effet moyen sur les traités (ATT)</strong> en
 tenant compte du fait que nos observations ont été appariées.</p>
+<pre class="r"><code>data_matched &lt;- match_data(m.out1)
+
+fit &lt;- glm(death_event ~ high_blood_pressure,
+          data = data_matched,
+          family = binomial,
+          weights = weights)
+
+results &lt;- marginaleffects::avg_comparisons(fit,
+                                            vcov = ~subclass,
+                                            newdata = subset(high_blood_pressure == &quot;Oui&quot;))
+
+
+print(results) |&gt; 
+  knitr::kable(digits=2)</code></pre>
 <pre><code>## 
 ##  Estimate Std. Error     z Pr(&gt;|z|)   S  2.5 % 97.5 %
 ##    0.0476     0.0626 0.761    0.447 1.2 -0.075   0.17
@@ -1017,36 +1049,6 @@ cela ne signifie pas forcément que cet effet n’existe pas, mais en tout
 cas on ne dispose pas dans nos données de suffisament d’observations
 pour affirmer ici que l’hypertension artérielle augmente
 signficativement la probabilité de décès.</p>
-<pre><code>## 
-## Call:
-## glm(formula = death_event ~ high_blood_pressure + age + sex + 
-##     anaemia + creatinine_phosphokinase + diabetes + platelets + 
-##     serum_creatinine + serum_sodium + smoking, family = binomial, 
-##     data = data_interest)
-## 
-## Coefficients:
-##                            Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)               5.622e+00  4.480e+00   1.255 0.209566    
-## high_blood_pressureOui    4.512e-01  2.878e-01   1.568 0.116957    
-## age                       4.301e-02  1.216e-02   3.536 0.000406 ***
-## sexHomme                 -1.830e-01  3.296e-01  -0.555 0.578726    
-## anaemiaOui                3.647e-01  2.853e-01   1.278 0.201228    
-## creatinine_phosphokinase  2.924e-04  1.404e-04   2.083 0.037289 *  
-## diabetesOui               1.294e-01  2.841e-01   0.456 0.648715    
-## platelets                -9.454e-07  1.524e-06  -0.620 0.534948    
-## serum_creatinine          6.875e-01  2.038e-01   3.373 0.000743 ***
-## serum_sodium             -7.507e-02  3.211e-02  -2.338 0.019400 *  
-## smokingOui                1.554e-01  3.306e-01   0.470 0.638315    
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 375.35  on 298  degrees of freedom
-## Residual deviance: 320.96  on 288  degrees of freedom
-## AIC: 342.96
-## 
-## Number of Fisher Scoring iterations: 5</code></pre>
 </div>
 </div>
 <div id="forces-et-limites-des-méthodes-avec-score-de-propension" class="section level1">
@@ -1072,7 +1074,7 @@ sélection non observables polluent notre analyse, là où un essai
 clinique randomisé calibré correctement nous met normalement à l’abri de
 ce problème. Il est donc fondamental de garder constamment cet écueil en
 tête pour essayer d’anticiper les possibles défauts de nos analyses.</p>
-<p>C’est tout pour aujourd’hui! Si vous cherchez des <a href="https://www.statoscop.fr">statisticien pour vos études cliniques
+<p>C’est tout pour aujourd’hui! Si vous cherchez des <a href="https://www.statoscop.fr">statisticiens pour vos études cliniques
 n’hésitez pas à visiter notre site</a> et à nous suivre sur <a href="https://twitter.com/stato_scop">Twitter</a> et <a href="https://www.linkedin.com/company/statoscop">Linkedin</a>. Pour
 retrouver le code ayant servi à générer cette note, vous pouvez vous
 rendre sur le <a href="https://github.com/Statoscop/notebooks-blog">github de
