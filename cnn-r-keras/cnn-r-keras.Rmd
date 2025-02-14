@@ -1,0 +1,103 @@
+---
+title: "Deep Learning avec R : réseaux de neurones convolutionnels avec la librairie keras"
+author: "Antoine"
+date: "??/??/????"
+output: 
+  html_document:
+    toc: true
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+
+library(dplyr)
+```
+
+# Présentation de la librairie Keras
+
+## Origine de la librairie
+
+## Installation du package sur R
+
+documentation officielle : <https://keras3.posit.co>
+
+-\> utilisation du GPU?
+
+```{r}
+
+```
+
+# Entraîner un premier réseau convolutionnel
+
+## Pré-traiter vos données
+
+## Initialiser et définir votre réseau de neurones profond
+
+```{r}
+library(keras3)
+
+mnist <- dataset_mnist()
+x_train <- mnist$train$x
+y_train <- mnist$train$y
+x_test<- mnist$test$x
+y_test <- mnist$test$y
+
+# on normalise sur [0, 1]
+x_train <- x_train/255
+x_test <- x_test/255
+
+y_train <- to_categorical(y_train, num_classes = 10)
+y_test <- to_categorical(y_test, num_classes = 10)
+```
+
+## Entraîner et évaluer les performances de votre modèle
+
+Une syntaxe similaire à celle de Python : on initialise le modèle avec `keras_model_sequential`, dans lequel on précise d'emblée la dimension des données que le modèle prendra en entrée. Puis on ajoute les différentes couches de neurones.  
+
+Comme nous sommes dans un réseau convolutionnel on commence directement par une couche de convolution, qui permet de faire ressortir les caractéristiques de chaque image. Cela fonctionne grâce à un système de filtre, réalisé en faisant le produit de la matrice de pixels et d'une matrice plus petite, appelée `feature detector`. On paramètre dans cette étape le nombre de filtres que l'on souhaite faire passer avec le paramètre `filters` et la taille de la matrice `feature detector` avec le parmaètre `kernel_size`.   
+
+On applique ensuite aux matrices obtenues une couche de **max pooling** qui permet de réduire les dimensions du problème en ne conservant que les valeurs les plus importantes. Cette étape permet aussi de rendre plus souvent comparables des images ayant des caractéristiques semblables à des endroits différents de l'image. Le paramètre `pool_size` permet de choisir la taille du sous-ensemble sur lequel on ne va garder que la valeur maximale. 
+
+On peut ensuite refair edes nouvelles couches de convolution suivies de pooling, en fonction de la complexté et de la taille de nos amtrices de pixel en entrée du modèle. On termine ces étapes par une couche `flatten()` qui permet d'obtenir un input en deux dimensions sur lequel on va pouvoir construire notre réseau de neurones profond avec des couches `dense()`.
+
+Le package R `keras3` permet une syntaxe très proche de celle que l'on utiliserait sur Python. On peut en plus relier ces couches avec l'opérateur `|>`, rendant le code encore plus lisible et aéré : 
+
+```{r}
+# Initialisation du modèle  
+my_first_r_cnn <- keras_model_sequential(input_shape = c(28,28,1))
+
+# convolution et max pooling
+my_first_r_cnn <- my_first_r_cnn |> 
+  # on définit les dimension des inputs dans une couche dédiée
+  #keras_input(shape = c(28, 28)) |> 
+  layer_conv_2d(filters = 32, kernel_size = c(3, 3), 
+                # l'activation relu "casse" une linéarité qui a pu
+                # être introduite avec la convolution
+                activation = 'relu') |> 
+  layer_max_pooling_2d(pool_size = c(2, 2)) |> 
+  layer_conv_2d(filters = 32, kernel_size = c(3, 3), 
+              # l'activation relu "casse" une linéarité qui a pu
+              # être introduite avec la convolution
+              activation = 'relu') |> 
+  layer_max_pooling_2d(pool_size = c(2, 2)) |> 
+  layer_flatten() |> 
+  layer_dense(units = 128, activation = 'relu') |> 
+  layer_dense(units = 64, activation = 'relu') |> 
+  layer_dense(units = 10, activation = 'softmax')
+```
+
+On peut résumer notre modèle ainsi
+
+```{r}
+summary(my_first_r_cnn)
+```
+```{r}
+plot(my_first_r_cnn)
+```
+
+# Transfer Learning : comparaison avec Python
+
+# Alors, deep learning avec R ou Python?
+
+Plutôt Python, mais pourquoi pas dans un projet très stats! le papier en question : <https://www.science.org/doi/10.1126/science.adi6000>
