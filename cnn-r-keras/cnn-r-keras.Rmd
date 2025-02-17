@@ -18,21 +18,24 @@ library(dplyr)
 
 ## Origine de la librairie
 
-## Installation du package sur R
+Keras est une API qui s'appuie sur `TensorFlow` et permet de créer et entraîner des modèles de Deep Learning. Elle a l'avantage d'offrir une interface simple et une syntaxe claire. Elle permet également d'accéder à de nombreux modèles pré-entraînés qui peuvent ensuite facilement être _fine-tunés_ sur d'autres données.  
 
+Keras dispose aussi d'une [documentation très complète](https://keras.io/api/), et sa popularité permet de retrouver de nombreux exemples d'utilisation en ligne. Elle est le plus souvent utilisée grâce au package Python `keras` qui permet d'exploiter facilement ses différentes méthodes.   
+
+## Installation du package sur R  
+
+Grâce notamment à la puissance de `reticulate`, un package permettant de faire tourner Python depuis une session R, on dispose maintenant d'un package R `keras`, que nous vous présentons ici. Nous utiliserons la dernière version disponible, le package `keras3`
 documentation officielle : <https://keras3.posit.co>
 
 -\> utilisation du GPU?
 
 ```{r}
-
+tensorflow::tf$config$list_physical_devices("GPU")
 ```
 
 # Entraîner un premier réseau convolutionnel
 
 ## Pré-traiter vos données
-
-## Initialiser et définir votre réseau de neurones profond
 
 ```{r}
 library(keras3)
@@ -47,19 +50,20 @@ y_test <- mnist$test$y
 x_train <- x_train/255
 x_test <- x_test/255
 
+# one-hot-encoder pour la variable d'intérêt avec to_categorical
 y_train <- to_categorical(y_train, num_classes = 10)
 y_test <- to_categorical(y_test, num_classes = 10)
 ```
 
-## Entraîner et évaluer les performances de votre modèle
+## Initialiser et définir votre réseau de neurones profond  
 
-Une syntaxe similaire à celle de Python : on initialise le modèle avec `keras_model_sequential`, dans lequel on précise d'emblée la dimension des données que le modèle prendra en entrée. Puis on ajoute les différentes couches de neurones.  
+On initialise le modèle avec `keras_model_sequential`, dans lequel on précise d'emblée la dimension des données que le modèle prendra en entrée. Puis on ajoute les différentes couches de neurones.  
 
-Comme nous sommes dans un réseau convolutionnel on commence directement par une couche de convolution, qui permet de faire ressortir les caractéristiques de chaque image. Cela fonctionne grâce à un système de filtre, réalisé en faisant le produit de la matrice de pixels et d'une matrice plus petite, appelée `feature detector`. On paramètre dans cette étape le nombre de filtres que l'on souhaite faire passer avec le paramètre `filters` et la taille de la matrice `feature detector` avec le parmaètre `kernel_size`.   
+Comme nous sommes dans un réseau convolutionnel, on commence directement par une couche de convolution, qui permet de faire ressortir les caractéristiques de chaque image. Cela fonctionne grâce à un système de filtre, réalisé en faisant le produit de la matrice de pixels et d'une matrice plus petite, appelée `feature detector`. On définit dans cette étape le nombre de filtres que l'on souhaite faire passer avec le paramètre `filters` et la taille de la matrice `feature detector` avec le paramètre `kernel_size`.   
 
 On applique ensuite aux matrices obtenues une couche de **max pooling** qui permet de réduire les dimensions du problème en ne conservant que les valeurs les plus importantes. Cette étape permet aussi de rendre plus souvent comparables des images ayant des caractéristiques semblables à des endroits différents de l'image. Le paramètre `pool_size` permet de choisir la taille du sous-ensemble sur lequel on ne va garder que la valeur maximale. 
 
-On peut ensuite refair edes nouvelles couches de convolution suivies de pooling, en fonction de la complexté et de la taille de nos amtrices de pixel en entrée du modèle. On termine ces étapes par une couche `flatten()` qui permet d'obtenir un input en deux dimensions sur lequel on va pouvoir construire notre réseau de neurones profond avec des couches `dense()`.
+On peut ensuite refaire des nouvelles couches de convolution suivies de pooling, en fonction de la complexté et de la taille de nos matrices de pixel en entrée du modèle. On termine ces étapes par une couche `flatten()` qui permet d'obtenir un input en deux dimensions sur lequel on va pouvoir construire notre réseau de neurones profond avec des couches `dense()`. On choisit ici une couche avec 128 neurones, suivie d'une couche avec 64 neurones. la couche de sortie contient 10 neurones correspondant aux 10 classes possibles.
 
 Le package R `keras3` permet une syntaxe très proche de celle que l'on utiliserait sur Python. On peut en plus relier ces couches avec l'opérateur `|>`, rendant le code encore plus lisible et aéré : 
 
@@ -70,16 +74,13 @@ my_first_r_cnn <- keras_model_sequential(input_shape = c(28,28,1))
 # convolution et max pooling
 my_first_r_cnn <- my_first_r_cnn |> 
   # on définit les dimension des inputs dans une couche dédiée
-  #keras_input(shape = c(28, 28)) |> 
   layer_conv_2d(filters = 32, kernel_size = c(3, 3), 
                 # l'activation relu "casse" une linéarité qui a pu
                 # être introduite avec la convolution
                 activation = 'relu') |> 
   layer_max_pooling_2d(pool_size = c(2, 2)) |> 
   layer_conv_2d(filters = 32, kernel_size = c(3, 3), 
-              # l'activation relu "casse" une linéarité qui a pu
-              # être introduite avec la convolution
-              activation = 'relu') |> 
+                activation = 'relu') |> 
   layer_max_pooling_2d(pool_size = c(2, 2)) |> 
   layer_flatten() |> 
   layer_dense(units = 128, activation = 'relu') |> 
@@ -87,16 +88,133 @@ my_first_r_cnn <- my_first_r_cnn |>
   layer_dense(units = 10, activation = 'softmax')
 ```
 
-On peut résumer notre modèle ainsi
+Enfin, on peut illustrer la structure de notre modèle avec la fonction `summary()` : 
 
 ```{r}
 summary(my_first_r_cnn)
 ```
+
+
+## Entraîner et évaluer les performances de votre modèle
+
+La première étape est de compiler l'objet créé précédemment, en féfinissant l'_optimizer_ qui sera utilisé, la fonction de perte et la métrique sur laquelle on souhaite optimiser le résultat du modèel :  
+  
+  
 ```{r}
-plot(my_first_r_cnn)
+compile(my_first_r_cnn,
+        optimizer = 'adam',
+        loss = 'categorical_crossentropy',
+        metrics = 'accuracy') 
+```
+
+Ensuite, on peut lancer l'entraînement avec une instruction `fit()` que l'on applique à nos données d'entraînement. On y définit notamment le paramètre `batch_size` qui permet de déterminer combien d'images le modèle va traiter avant d'ajuster ses coefficients. Le paramètre `epochs` définit le nombre de fois où le modèle passe sur toutes les données. Enfin, on split nos données d'entraînement en conservant 30% comme données de validation afin de d'évaluer correctement les performances de notre modèle :  
+
+```{r}
+history <- my_first_r_cnn %>% fit(
+  x_train, y_train,
+  epochs = 30,
+  batch_size = 64,
+  validation_split = 0.3
+)
+```
+
+On peut illustrer l'évolution de la qualité du modèle au fur et à mesure des epochs avec `plot` :  
+
+```{r}
+plot(history)
+```
+
+Enfin, on sort la performance du modèle sur nos données test avec `evaluate` :  
+
+```{r}
+accuracy_test <- my_first_r_cnn |> evaluate(x_test, y_test)
+print(accuracy_test)
 ```
 
 # Transfer Learning : comparaison avec Python
+
+Nous avons déja fait une [note de blog dédiée au Transfer Learning avec keras sur python](https://blog.statoscop.fr/transfer-learning-keras.html). Nous reprenons le même [dataset kagglet qui contient des images de fruits](https://blog.statoscop.fr/transfer-learning-keras.html#evaluation-du-modele-avec-scikit-learn), classés selon s'ils sont pourris ou frais.  
+
+## Import des données et initialisation du modèle  
+
+Pour importer les images sous un format directement exploitable par `keras`, on utilise la fonction `image_dataset_from_directory`. La fonction permet à la fois d'obtenir directement les classes des images en fonction du sous-dossier auquel elles appartiennent et de partitionner nos données en un set d'entraînement et de validation.  
+
+```{r}
+images_dataset <- image_dataset_from_directory(
+  "dataset",
+  image_size = list(256, 256),
+  validation_split = 0.30,
+  batch_size = 32,
+  seed = 15,
+  # le param label_mode spécifie bien que c'est un problème de classification
+  label_mode = "categorical",
+  subset = "both")
+
+training_set <- images_dataset[[1]]
+validation_set <- images_dataset[[2]]
+```
+
+On peut maintenant, excatement comme dans Python, charger un des modèles pré-entraînés disponibles sur Keras. On choisit de nouveau le modèle ResNet50 V2 comme pour notre note de blog sur Python :  
+
+```{r}
+# comme dans Python, on met include_top = FALSE 
+# puisqu'on va ajouter des couches d'entraînement
+model_resnet50v2 <- application_resnet50_v2(weights = "imagenet", 
+                                            include_top = FALSE, 
+                                            input_shape = c(256, 256, 3))
+
+# On gèle les paramètres du modèle existant 
+model_resnet50v2$trainable <- FALSE
+
+#summary(model_resnet50v2)
+```
+
+Il nous reste à affiner notre modèle à notre problème. Comme on veut quelque chose qui s'entrâine rapidement, on "gèle" les paramètres déjà entraînés et on ajoute seulements quelques couches de neurones qui permettront au modèle d'être plus performant sur nos données. Comme nous l'avions fait avec Python, on ajoute également des couches pour mettre tout à la même échelle (`rescaling`) mais aussi pour faire un peu d'augmentation de données (`random_rotation` et `random_zoom`).  
+
+À noter qu'il ne faut prendre que l'élément `output` du modèle pour y ajouter des couches de neurones. Une fois les différentes couches définies, le modèle final est construit avec la fonction `keras_model` :    
+
+```{r}
+# On définit des couches de pré-traitement en input
+inputs <- keras_input(shape = c(256, 256, 3)) |> 
+  layer_rescaling(1/255) |> 
+  layer_random_rotation(list(-0.2, 0.2)) |> 
+  layer_random_zoom(list(0, 0.3)) 
+  
+ouputs <- inputs |> 
+  # couches du modèle pré-entraîné --
+  model_resnet50v2(training = FALSE) |> 
+  # couches de neurones --
+  layer_flatten() |> 
+  layer_dense(units = 256, activation = "relu") |> 
+  layer_dense(units = 128, activation = "relu") |> 
+  # On a 6 classes donc on termine par 6 neurones 
+  # avec l'activation softmax
+  layer_dense(units = 6, activation = "softmax") 
+
+# On crée le modèle final
+model_resnet50v2_custom <- keras_model(inputs = inputs, 
+                                       outputs = ouputs)
+
+summary(model_resnet50v2_custom)
+```
+
+## Entraînement et évaluation du modèle   
+
+Il ne nous reste plus qu'à entraîner notre modèle comme précédemment, sans oublier avant de le compiler :  
+
+```{r}
+compile(model_resnet50v2_custom,
+        optimizer = 'adam',
+        loss = 'categorical_crossentropy',
+        metrics = 'accuracy') 
+
+
+history <- model_resnet50v2_custom |> fit(
+  training_set,
+  epochs = 100,
+  validation_data = validation_set
+)
+```
 
 # Alors, deep learning avec R ou Python?
 
