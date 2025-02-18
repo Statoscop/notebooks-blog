@@ -9,33 +9,42 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE)
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
 
 library(dplyr)
+
 ```
 
 # Présentation de la librairie Keras
 
 ## Origine de la librairie
 
-Keras est une API qui s'appuie sur `TensorFlow` et permet de créer et entraîner des modèles de Deep Learning. Elle a l'avantage d'offrir une interface simple et une syntaxe claire. Elle permet également d'accéder à de nombreux modèles pré-entraînés qui peuvent ensuite facilement être _fine-tunés_ sur d'autres données.  
+Keras est une API Python qui permet de créer et entraîner des modèles de Deep Learning. Elle a l'avantage d'offrir une interface simple et une syntaxe claire. Elle permet également d'accéder à de nombreux modèles pré-entraînés qui peuvent ensuite facilement être _fine-tunés_ sur d'autres données. Elle a été récemment intégrée à `TensorFlow` mais peut s'appuyer sur d'autres backends.
 
-Keras dispose aussi d'une [documentation très complète](https://keras.io/api/), et sa popularité permet de retrouver de nombreux exemples d'utilisation en ligne. Elle est le plus souvent utilisée grâce au package Python `keras` qui permet d'exploiter facilement ses différentes méthodes.   
+Keras dispose aussi d'une [documentation très complète](https://keras.io/api/), et sa popularité permet de retrouver de nombreux exemples d'utilisation en ligne. Elle est le plus souvent utilisée grâce au package Python `keras` ou via TensorFlow avec `tf.keras`, qui permettent d'exploiter facilement ses différentes méthodes.   
 
 ## Installation du package sur R  
 
-Grâce notamment à la puissance de `reticulate`, un package permettant de faire tourner Python depuis une session R, on dispose maintenant d'un package R `keras`, que nous vous présentons ici. Nous utiliserons la dernière version disponible, le package `keras3`
-documentation officielle : <https://keras3.posit.co>
+Grâce notamment à la puissance de `reticulate`, un package permettant de faire tourner Python depuis une session R, on dispose maintenant d'un package R `keras`, que nous vous présentons ici. Nous utiliserons la dernière version disponible, le package `keras3`. La première étape est bien sur d'installer le package avec `install.packages("keras3")` puis de lancer la fonction `keras3::install_keras()` qui permet d'installer Python et un environnement anaconda dédié.
 
--\> utilisation du GPU?
+```{r eval=FALSE}
+library(keras3)
+install_keras()
+```
 
-```{r}
+Si vous avez du GPU, vous pouvez vérifier que votre devise a bien été repérée avec l'instruction suivante (normalement, `tensorflow` a été installé au moment de l'installation de `keras3`) :    
+
+```{r echo=TRUE}
 tensorflow::tf$config$list_physical_devices("GPU")
 ```
 
 # Entraîner un premier réseau convolutionnel
 
+Pour notre petite démonstration, nous allons utiliser la célébrissime base de données `mnist` qui contient des images de chiffres écrits à la main. Le but est donc de développer un modèle capable de reconnaître les chiffres manuscrits.  
+
 ## Pré-traiter vos données
+
+Les données sont fournies avec 60 000 observations pour les données d'entraînements et 10 000 pour les données de test. Les images étant renseignées directement sous forme de matrice dans le package `keras3` nous n'avons besoin que de normaliser ces matrices sur [0, 1]. On passe aussi la variable d'intérêt, qui donne la valeur du chiffre en question, sous un one-hot-encoder avec la fonction `to_categorical`. On obtient ainsi un vecteur de taille 10 avec 0 ou 1 pour chacune des positions. 
 
 ```{r}
 library(keras3)
@@ -53,6 +62,7 @@ x_test <- x_test/255
 # one-hot-encoder pour la variable d'intérêt avec to_categorical
 y_train <- to_categorical(y_train, num_classes = 10)
 y_test <- to_categorical(y_test, num_classes = 10)
+
 ```
 
 ## Initialiser et définir votre réseau de neurones profond  
@@ -79,7 +89,7 @@ my_first_r_cnn <- my_first_r_cnn |>
                 # être introduite avec la convolution
                 activation = 'relu') |> 
   layer_max_pooling_2d(pool_size = c(2, 2)) |> 
-  layer_conv_2d(filters = 32, kernel_size = c(3, 3), 
+  layer_conv_2d(filters = 16, kernel_size = c(2, 2), 
                 activation = 'relu') |> 
   layer_max_pooling_2d(pool_size = c(2, 2)) |> 
   layer_flatten() |> 
@@ -88,7 +98,7 @@ my_first_r_cnn <- my_first_r_cnn |>
   layer_dense(units = 10, activation = 'softmax')
 ```
 
-Enfin, on peut illustrer la structure de notre modèle avec la fonction `summary()` : 
+On peut illustrer la structure de notre modèle avec la fonction `summary()` : 
 
 ```{r}
 summary(my_first_r_cnn)
@@ -97,9 +107,9 @@ summary(my_first_r_cnn)
 
 ## Entraîner et évaluer les performances de votre modèle
 
-La première étape est de compiler l'objet créé précédemment, en féfinissant l'_optimizer_ qui sera utilisé, la fonction de perte et la métrique sur laquelle on souhaite optimiser le résultat du modèel :  
+La première étape est de compiler l'objet créé précédemment, en définissant l'_optimizer_ qui sera utilisé, la fonction de perte et la métrique sur laquelle on souhaite optimiser le résultat du modèel :  
   
-  
+
 ```{r}
 compile(my_first_r_cnn,
         optimizer = 'adam',
@@ -114,8 +124,7 @@ history <- my_first_r_cnn %>% fit(
   x_train, y_train,
   epochs = 30,
   batch_size = 64,
-  validation_split = 0.3
-)
+  validation_split = 0.3)
 ```
 
 On peut illustrer l'évolution de la qualité du modèle au fur et à mesure des epochs avec `plot` :  
@@ -131,91 +140,46 @@ accuracy_test <- my_first_r_cnn |> evaluate(x_test, y_test)
 print(accuracy_test)
 ```
 
-# Transfer Learning : comparaison avec Python
+> Inutile bien sûr de préciser que nous sommes dans un cas de classification relativement simple et avec énormément de données de bonne qualité, donc ne cherchez pas à atteindre de tels niveaux de précision sur des données un peu plus compliquées! 
 
-Nous avons déja fait une [note de blog dédiée au Transfer Learning avec keras sur python](https://blog.statoscop.fr/transfer-learning-keras.html). Nous reprenons le même [dataset kagglet qui contient des images de fruits](https://blog.statoscop.fr/transfer-learning-keras.html#evaluation-du-modele-avec-scikit-learn), classés selon s'ils sont pourris ou frais.  
+# Prédictions à partir du modèle pré-entraîné  
 
-## Import des données et initialisation du modèle  
-
-Pour importer les images sous un format directement exploitable par `keras`, on utilise la fonction `image_dataset_from_directory`. La fonction permet à la fois d'obtenir directement les classes des images en fonction du sous-dossier auquel elles appartiennent et de partitionner nos données en un set d'entraînement et de validation.  
+Prenons par exemple la 20e image de l'échantillon test : 
 
 ```{r}
-images_dataset <- image_dataset_from_directory(
-  "dataset",
-  image_size = list(256, 256),
-  validation_split = 0.30,
-  batch_size = 32,
-  seed = 15,
-  # le param label_mode spécifie bien que c'est un problème de classification
-  label_mode = "categorical",
-  subset = "both")
+index <- 20 # On prend la 20e image"
+image_data <- x_test[index,,]  # Sélection de l'image
+label <- mnist$test$y[index]  # Label associé
 
-training_set <- images_dataset[[1]]
-validation_set <- images_dataset[[2]]
+# Inverser les couleurs pour un affichage correct
+image_data <- t(apply(image_data, 2, rev))
+
+# Afficher l'image en niveaux de gris
+image(image_data, col = gray((0:255)/255), main = paste("Label :", label),
+      axes = FALSE, asp = 1)
 ```
 
-On peut maintenant, excatement comme dans Python, charger un des modèles pré-entraînés disponibles sur Keras. On choisit de nouveau le modèle ResNet50 V2 comme pour notre note de blog sur Python :  
+On peut sortir les prédictions des probabilités associées à chaque classe avec la fonction `predict()`. La prédiction associée à l'image précédente donne le résultat suivant :  
 
 ```{r}
-# comme dans Python, on met include_top = FALSE 
-# puisqu'on va ajouter des couches d'entraînement
-model_resnet50v2 <- application_resnet50_v2(weights = "imagenet", 
-                                            include_top = FALSE, 
-                                            input_shape = c(256, 256, 3))
+# On prédit l'ensemble des X_test
+matrice_pred <- my_first_r_cnn |> predict(x_test)
+# On sort l'index max - 1 (qui correspond à la classe) de l'observation n°20
+pred_obs <- which.max(matrice_pred[20,]) - 1
 
-# On gèle les paramètres du modèle existant 
-model_resnet50v2$trainable <- FALSE
+image(image_data, col = gray((0:255)/255), main = paste("Label :", label, 
+                                                        "Prédiction :", pred_obs),
+      axes = FALSE, asp = 1)
 
-#summary(model_resnet50v2)
 ```
 
-Il nous reste à affiner notre modèle à notre problème. Comme on veut quelque chose qui s'entrâine rapidement, on "gèle" les paramètres déjà entraînés et on ajoute seulements quelques couches de neurones qui permettront au modèle d'être plus performant sur nos données. Comme nous l'avions fait avec Python, on ajoute également des couches pour mettre tout à la même échelle (`rescaling`) mais aussi pour faire un peu d'augmentation de données (`random_rotation` et `random_zoom`).  
 
-À noter qu'il ne faut prendre que l'élément `output` du modèle pour y ajouter des couches de neurones. Une fois les différentes couches définies, le modèle final est construit avec la fonction `keras_model` :    
+# Deep Learning avec R ou Python?  
 
-```{r}
-# On définit des couches de pré-traitement en input
-inputs <- keras_input(shape = c(256, 256, 3)) |> 
-  layer_rescaling(1/255) |> 
-  layer_random_rotation(list(-0.2, 0.2)) |> 
-  layer_random_zoom(list(0, 0.3)) 
-  
-ouputs <- inputs |> 
-  # couches du modèle pré-entraîné --
-  model_resnet50v2(training = FALSE) |> 
-  # couches de neurones --
-  layer_flatten() |> 
-  layer_dense(units = 256, activation = "relu") |> 
-  layer_dense(units = 128, activation = "relu") |> 
-  # On a 6 classes donc on termine par 6 neurones 
-  # avec l'activation softmax
-  layer_dense(units = 6, activation = "softmax") 
+Le package `keras3` est très complet et semble offrir autant de possibilités que le module Python. Il dispose aussi d'une [documentation complète et très détaillée](https://keras3.posit.co). Cependant, il faut garder en tête qu'il fait tourner Python en arrière-plan.   
 
-# On crée le modèle final
-model_resnet50v2_custom <- keras_model(inputs = inputs, 
-                                       outputs = ouputs)
+Le gros avantage pour un utilisateur non aguerri de Python est que le package `keras3` va gérer pour vous l'environnement anaconda et les dépendances, qui peuvent être un vrai casse-tête quand on se met à Python. Enfin, la syntaxe très proche de celle de Python peut vous permettre de commencer à vous accoutumer en vue d'une future utilisation de Python, tout en restant sur votre langage favori en attendant!  
 
-summary(model_resnet50v2_custom)
-```
-
-## Entraînement et évaluation du modèle   
-
-Il ne nous reste plus qu'à entraîner notre modèle comme précédemment, sans oublier avant de le compiler :  
-
-```{r}
-compile(model_resnet50v2_custom,
-        optimizer = 'adam',
-        loss = 'categorical_crossentropy',
-        metrics = 'accuracy') 
+Enfin, on peut imaginer que l'utilisation d'un package R peut être très pratique dans le cadre de la mise en oeuvre de méthodes de statistiques inférentielles sur des prédictions de modèles de Machine Learning, comme par exemple dans [ce papier très intéressant](https://www.science.org/doi/10.1126/science.adi6000).
 
 
-history <- model_resnet50v2_custom |> fit(
-  training_set,
-  epochs = 100,
-  validation_data = validation_set
-)
-```
-
-# Alors, deep learning avec R ou Python?
-
-Plutôt Python, mais pourquoi pas dans un projet très stats! le papier en question : <https://www.science.org/doi/10.1126/science.adi6000>
