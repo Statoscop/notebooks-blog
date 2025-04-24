@@ -26,7 +26,7 @@ Ici nous vous proposons donc un rapide tour des possibilités offertes par ces f
 
 La syntaxe de ces deux verbes est exactement la même que celle d'`across()` :  
 
-```{r eval=FALSE, include=TRUE}
+```{r echo=TRUE, eval=FALSE}
 if_any(.cols, .fns, ...)
 if_all(.cols, .fns, ...)
 ```
