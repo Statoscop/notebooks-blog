@@ -1,0 +1,37 @@
+---
+title: "Utilisation de case_when dans dplyr : cas des variables facteurs"
+author: "Antoine"
+date: "??/??/????"
+output: 
+  html_document:
+    toc: true
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+
+library(dplyr)
+
+```
+
+Le verbe `case_when` 
+# Syntaxe de case_when dans dplyr  
+
+## Principes et différences avec if_else  
+cas où une des variables de la condition a une valeur manquante  
+
+## Gestion des différents formats de variables  
+exemple avec les valeurs manquantes par exemple  
+les différentes valeurs définies doivent être du même type
+
+# Utiliser case_when directement sur des facteurs  
+
+## Repasser par les variables caractères  
+
+TRUE ~ ou .default? -> cas quand le défaut est justement une variable facteur
+
+## Une syntaxe synthétique avec ptype  
+
+
+# 
