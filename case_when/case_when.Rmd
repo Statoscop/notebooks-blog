@@ -13,25 +13,97 @@ knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
 
 library(dplyr)
 
+
+set.seed(123)  # pour la reproductibilité
+
+df <- tibble::tibble(
+  id     = 1:200,
+  groupe = sample(c("A", "B", "C"), size = 200, replace = TRUE),
+  valeur = sample(c(10:30, NA), size = 200, replace = TRUE),
+  statut = factor(sample(c("ok", "ko", NA), size = 200, replace = TRUE))
+)
+
 ```
 
-Le verbe `case_when` 
-# Syntaxe de case_when dans dplyr  
 
-## Principes et différences avec if_else  
-cas où une des variables de la condition a une valeur manquante  
+Le verbe `case_when` est un incontournable du traitement de données avec `dplyr`. Il permet de créer une variable conditionnellement à une ou plusieurs variables existantes. Sa syntaxe est très lisible et permet à votre code de rester clair. Cependant, vous avez peut-être déjà eu quelques problèmes à l'utiliser avec des variables facteurs. Dans cette note, on vous présente ce verbe bien pratique de `dplyr`, ses nouveautés et comment l'utiliser pour créer directement des variables facteurs. 
 
-## Gestion des différents formats de variables  
-exemple avec les valeurs manquantes par exemple  
+# Syntaxe de case_when dans dplyr et différences avec if_else   
+
+Pour cet article, nous nous reposons sur un dataset complètement fictif qui a la structure suivante :  
+
+```{r echo=FALSE}
+str(df)
+```
+
+Vous pouvez retrouver le code ayant servi à le générer sur [le dépôt des notes de blog de Statoscop](https://github.com/Statoscop/notebooks-blog).  
+
+Le verbe `case_when` comporte plusieurs différences avec `if_else`, mais deux nous semblent particulièrement importantes :   
+
+
+- sa syntaxe rend la lecture de plusieurs conditions bien plus aisée    
+- par défaut, il ne renvoie pas NA s'il croise une valeur manquante dans la condition  
+
+Pour __la première différence__, la syntaxe de `case_when` va permettre de définir les différentes conditions et la valeur associée chacune sur une ligne alors que celle de `if_else` oblige à chaîner les appels à la fonction. Illustrons cela en codant des deux manières une variable égale à :  
+
+- "cas 1" si groupe = "A" et valeur < 25 
+- "cas 2" si groupe = "B" ou "C" et valeur >= 25 
+- "cas 3" sinon
+
+Le code avec les deux syntaxes est le suivant :  
+
+```{r}
+df <- df |> mutate(
+  
+  # syntaxe case_when
+  cond_case = case_when(
+    groupe == "A" & valeur < 25 ~ "cas 1",
+    groupe %in% c("B", "C") & valeur >= 25 ~ "cas 2",
+    .default = "cas 3"),
+  
+  # syntaxe if_else
+  cond_ifelse = if_else(
+    groupe == "A" & valeur < 25,
+    "cas 1",
+    if_else(
+      groupe %in% c("B", "C") & valeur >= 25,
+      "cas 2",
+      "cas 3"))
+  ) 
+```
+
+Pour __la seconde différence__, `case_when` considère les valeurs manquantes comme une valeur à part entière alors que `if_else` renvoie automatiquement une valeur manquante s'il trouve une valeur manquante dans la condition. Si l'on observe nos deux variables on constate en effet qu'elles ne sont pas toujours égales :  
+
+```{r}
+df |> head(10)
+```
+Ainsi, __lorsque la valeur de la variable `valeur` est manquante__, la méthode `if_else` renvoie une valeur manquante alors que `case_when` lui donne la valeur "cas 3" car elle ne correspond pas aux deux premières conditions. Il faut donc __traiter explicitement les valeurs manquantes dans les conditions de `case_when` si l'on souhaite qu'elles ne soient pas prises en compte__.  
+
+
+
+# Gestion des types facteur avec case_when   
+
+
+```{r}
+df |> mutate(
+  test = case_when(
+    !is.na(valeur) ~ as.numeric(valeur < 20),
+    is.na(valeur) ~ "Manquant",
+    .ptype = character()
+  )
+)
+```
+
+
 les différentes valeurs définies doivent être du même type
+parler de la maj qui a harmonisé tout ça
+Seee [les news de dplyr](https://cran.r-project.org/web/packages/dplyr/news/news.html)  
 
-# Utiliser case_when directement sur des facteurs  
 
-## Repasser par les variables caractères  
+## `.ptype` pour créer directement un facteur 
+
+
+
+## `.default` pour définir la valeur de base  
 
 TRUE ~ ou .default? -> cas quand le défaut est justement une variable facteur
-
-## Une syntaxe synthétique avec ptype  
-
-
-# 
