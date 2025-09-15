@@ -361,24 +361,26 @@ des variables facteurs</h1>
 <li><a href="#syntaxe-de-case_when-dans-dplyr-et-différences-avec-if_else" id="toc-syntaxe-de-case_when-dans-dplyr-et-différences-avec-if_else">Syntaxe
 de case_when dans dplyr et différences avec if_else</a></li>
 <li><a href="#gestion-des-types-facteur-avec-case_when" id="toc-gestion-des-types-facteur-avec-case_when">Gestion des types
-facteur avec case_when</a>
+facteur avec <code>case_when</code></a>
 <ul>
-<li><a href="#ptype-pour-créer-directement-un-facteur" id="toc-ptype-pour-créer-directement-un-facteur"><code>.ptype</code>
-pour créer directement un facteur</a></li>
 <li><a href="#default-pour-définir-la-valeur-de-base" id="toc-default-pour-définir-la-valeur-de-base"><code>.default</code>
 pour définir la valeur de base</a></li>
+<li><a href="#ptype-pour-créer-directement-un-facteur" id="toc-ptype-pour-créer-directement-un-facteur"><code>.ptype</code>
+pour créer directement un facteur</a></li>
 </ul></li>
 </ul>
 </div>
 
-<p>Le verbe <code>case_when</code> est un incontournable du traitement
-de données avec <code>dplyr</code>. Il permet de créer une variable
-conditionnellement à une ou plusieurs variables existantes. Sa syntaxe
-est très lisible et permet à votre code de rester clair. Cependant, vous
-avez peut-être déjà eu quelques problèmes à l’utiliser avec des
-variables facteurs. Dans cette note, on vous présente ce verbe bien
-pratique de <code>dplyr</code>, ses nouveautés et comment l’utiliser
-pour créer directement des variables facteurs.</p>
+<p>Le verbe <code>case_when</code> est un <strong>incontournable du
+traitement de données avec <code>dplyr</code></strong>. Il permet de
+créer une variable conditionnellement à une ou plusieurs variables
+existantes. Sa syntaxe est <strong>très lisible et permet à votre code
+de rester clair</strong>. Cependant, vous avez peut-être déjà eu
+quelques problèmes à l’<strong>utiliser avec des variables
+facteurs</strong>. Dans cette note, on vous présente ce verbe bien
+pratique de <code>dplyr</code>, ses nouveautés et comment
+<strong>l’utiliser pour créer directement des variables
+facteurs</strong>.</p>
 <div id="syntaxe-de-case_when-dans-dplyr-et-différences-avec-if_else" class="section level1">
 <h1>Syntaxe de case_when dans dplyr et différences avec if_else</h1>
 <p>Pour cet article, nous nous reposons sur un dataset complètement
@@ -386,7 +388,7 @@ fictif qui a la structure suivante :</p>
 <pre><code>## tibble [200 × 4] (S3: tbl_df/tbl/data.frame)
 ##  $ id    : int [1:200] 1 2 3 4 5 6 7 8 9 10 ...
 ##  $ groupe: chr [1:200] &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;B&quot; ...
-##  $ valeur: int [1:200] NA 20 10 28 19 30 NA 22 20 20 ...
+##  $ var1  : int [1:200] NA 20 10 28 19 30 NA 22 20 20 ...
 ##  $ statut: Factor w/ 2 levels &quot;ko&quot;,&quot;ok&quot;: NA 1 NA 1 1 2 1 NA 2 2 ...</code></pre>
 <p>Vous pouvez retrouver le code ayant servi à le générer sur <a href="https://github.com/Statoscop/notebooks-blog">le dépôt des notes de
 blog de Statoscop</a>.</p>
@@ -394,20 +396,25 @@ blog de Statoscop</a>.</p>
 <code>if_else</code>, mais deux nous semblent particulièrement
 importantes :</p>
 <ul>
-<li>sa syntaxe rend la lecture de plusieurs conditions bien plus
-aisée<br />
+<li>sa syntaxe rend <strong>la lecture de plusieurs conditions</strong>
+bien plus aisée<br />
 </li>
-<li>par défaut, il ne renvoie pas NA s’il croise une valeur manquante
-dans la condition</li>
+<li>par défaut, <strong>il ne renvoie pas NA s’il croise une valeur
+manquante</strong> dans la condition</li>
 </ul>
 <p>Pour <strong>la première différence</strong>, la syntaxe de
-<code>case_when</code> va permettre de définir les différentes
-conditions et la valeur associée chacune sur une ligne alors que celle
-de <code>if_else</code> oblige à chaîner les appels à la fonction.
-Illustrons cela en codant des deux manières une variable égale à :</p>
+<code>case_when</code> va permettre de <strong>définir les différentes
+conditions</strong> et la valeur associée sur une ligne dédiée alors que
+<strong>celle de <code>if_else</code> oblige à chaîner les appels à la
+fonction</strong>. En fait, <code>case_when</code> a même été créé pour
+mettre de généraliser <code>if_else</code> à des multiples conditions
+puisqu’il est indiqué dans sa description de la page d’aide que c’est
+une fonction <strong>permettant de vectoriser l’appel à plusieurs
+<code>if_else</code></strong>. Illustrons cela en codant des deux
+manières une variable égale à :</p>
 <ul>
-<li>“cas 1” si groupe = “A” et valeur &lt; 25</li>
-<li>“cas 2” si groupe = “B” ou “C” et valeur &gt;= 25</li>
+<li>“cas 1” si groupe = “A” et var1 &lt; 25</li>
+<li>“cas 2” si groupe = “B” ou “C” et var1 &gt;= 25</li>
 <li>“cas 3” sinon</li>
 </ul>
 <p>Le code avec les deux syntaxes est le suivant :</p>
@@ -415,70 +422,122 @@ Illustrons cela en codant des deux manières une variable égale à :</p>
   
   # syntaxe case_when
   cond_case = case_when(
-    groupe == &quot;A&quot; &amp; valeur &lt; 25 ~ &quot;cas 1&quot;,
-    groupe %in% c(&quot;B&quot;, &quot;C&quot;) &amp; valeur &gt;= 25 ~ &quot;cas 2&quot;,
+    groupe == &quot;A&quot; &amp; var1 &lt; 25 ~ &quot;cas 1&quot;,
+    groupe %in% c(&quot;B&quot;, &quot;C&quot;) &amp; var1 &gt;= 25 ~ &quot;cas 2&quot;,
     .default = &quot;cas 3&quot;),
   
   # syntaxe if_else
   cond_ifelse = if_else(
-    groupe == &quot;A&quot; &amp; valeur &lt; 25,
+    groupe == &quot;A&quot; &amp; var1 &lt; 25,
     &quot;cas 1&quot;,
     if_else(
-      groupe %in% c(&quot;B&quot;, &quot;C&quot;) &amp; valeur &gt;= 25,
+      groupe %in% c(&quot;B&quot;, &quot;C&quot;) &amp; var1 &gt;= 25,
       &quot;cas 2&quot;,
       &quot;cas 3&quot;))
   ) </code></pre>
 <p>Pour <strong>la seconde différence</strong>, <code>case_when</code>
-considère les valeurs manquantes comme une valeur à part entière alors
-que <code>if_else</code> renvoie automatiquement une valeur manquante
-s’il trouve une valeur manquante dans la condition. Si l’on observe nos
-deux variables on constate en effet qu’elles ne sont pas toujours égales
-:</p>
+considère les valeurs manquantes <strong>comme une valeur à part
+entière</strong> alors que <code>if_else</code> <strong>renvoie
+automatiquement une valeur manquante</strong> s’il trouve une valeur
+manquante dans la condition. Si l’on observe nos deux variables on
+constate en effet qu’elles ne sont pas toujours égales :</p>
 <pre class="r"><code>df |&gt; head(10)</code></pre>
 <pre><code>## # A tibble: 10 × 6
-##       id groupe valeur statut cond_case cond_ifelse
-##    &lt;int&gt; &lt;chr&gt;   &lt;int&gt; &lt;fct&gt;  &lt;chr&gt;     &lt;chr&gt;      
-##  1     1 C          NA &lt;NA&gt;   cas 3     &lt;NA&gt;       
-##  2     2 C          20 ko     cas 3     cas 3      
-##  3     3 C          10 &lt;NA&gt;   cas 3     cas 3      
-##  4     4 B          28 ko     cas 2     cas 2      
-##  5     5 C          19 ko     cas 3     cas 3      
-##  6     6 B          30 ok     cas 2     cas 2      
-##  7     7 B          NA ko     cas 3     &lt;NA&gt;       
-##  8     8 B          22 &lt;NA&gt;   cas 3     cas 3      
-##  9     9 C          20 ok     cas 3     cas 3      
-## 10    10 A          20 ok     cas 1     cas 1</code></pre>
-<p>Ainsi, <strong>lorsque la valeur de la variable <code>valeur</code>
-est manquante</strong>, la méthode <code>if_else</code> renvoie une
-valeur manquante alors que <code>case_when</code> lui donne la valeur
-“cas 3” car elle ne correspond pas aux deux premières conditions. Il
-faut donc <strong>traiter explicitement les valeurs manquantes dans les
-conditions de <code>case_when</code> si l’on souhaite qu’elles ne soient
-pas prises en compte</strong>.</p>
+##       id groupe  var1 statut cond_case cond_ifelse
+##    &lt;int&gt; &lt;chr&gt;  &lt;int&gt; &lt;fct&gt;  &lt;chr&gt;     &lt;chr&gt;      
+##  1     1 C         NA &lt;NA&gt;   cas 3     &lt;NA&gt;       
+##  2     2 C         20 ko     cas 3     cas 3      
+##  3     3 C         10 &lt;NA&gt;   cas 3     cas 3      
+##  4     4 B         28 ko     cas 2     cas 2      
+##  5     5 C         19 ko     cas 3     cas 3      
+##  6     6 B         30 ok     cas 2     cas 2      
+##  7     7 B         NA ko     cas 3     &lt;NA&gt;       
+##  8     8 B         22 &lt;NA&gt;   cas 3     cas 3      
+##  9     9 C         20 ok     cas 3     cas 3      
+## 10    10 A         20 ok     cas 1     cas 1</code></pre>
+<p>Ainsi, <strong>lorsque la valeur de la variable <code>var1</code> est
+manquante</strong>, la méthode <code>if_else</code> renvoie une valeur
+manquante alors que <code>case_when</code> lui donne la valeur “cas 3”
+car elle ne correspond pas aux deux premières conditions. Il faut donc
+<strong>traiter explicitement les valeurs manquantes dans les conditions
+de <code>case_when</code> si l’on souhaite qu’elles ne soient pas prises
+en compte</strong>.</p>
 </div>
 <div id="gestion-des-types-facteur-avec-case_when" class="section level1">
-<h1>Gestion des types facteur avec case_when</h1>
-<pre class="r"><code>df |&gt; mutate(
-  test = case_when(
-    !is.na(valeur) ~ as.numeric(valeur &lt; 20),
-    is.na(valeur) ~ &quot;Manquant&quot;,
-    .ptype = character()
-  )
-)</code></pre>
-<pre><code>## Error in `mutate()`:
-## ℹ In argument: `test = case_when(...)`.
-## Caused by error in `case_when()`:
-## ! Can&#39;t convert `..1 (right)` &lt;double&gt; to &lt;character&gt;.</code></pre>
-<p>les différentes valeurs définies doivent être du même type parler de
-la maj qui a harmonisé tout ça Seee <a href="https://cran.r-project.org/web/packages/dplyr/news/news.html">les
-news de dplyr</a></p>
-<div id="ptype-pour-créer-directement-un-facteur" class="section level2">
-<h2><code>.ptype</code> pour créer directement un facteur</h2>
-</div>
+<h1>Gestion des types facteur avec <code>case_when</code></h1>
+<p>La création d’une variable avec <code>case_when</code> doit
+<strong>respecter le fait que la variable créée ait un type
+unique</strong>. Cela peut poser problème lorsque l’on souhaite créer
+directement une variable facteur.</p>
 <div id="default-pour-définir-la-valeur-de-base" class="section level2">
 <h2><code>.default</code> pour définir la valeur de base</h2>
-<p>TRUE ~ ou .default? -&gt; cas quand le défaut est justement une
-variable facteur</p>
+<p>Le paramètre <code>.default</code> permet de définir la valeur que
+prend la variable lorsqu’aucune des conditions n’est respectée. Il
+remplace l’utilisation de la syntaxe <code>.TRUE ~ valeur</code> depuis
+<a href="https://cran.r-project.org/web/packages/dplyr/news/news.html">dplyr
+1.1.0</a>. Il peut <strong>correspondre à une valeur</strong>, comme
+dans l’exemple précédent, <strong>ou à une variable existante</strong>.
+Il faut veiller à ce que <strong>le type de la variable corresponde bien
+à celui des modalités définies précédemment</strong>. En effet, on
+obtient sinon l’erreur suivante :</p>
+<pre class="r"><code>df |&gt; mutate(
+  statut_bis = case_when(
+    is.na(var1) ~ FALSE, # modalité booléen
+    .default = statut)) # variable facteur</code></pre>
+<pre><code>## Error in `mutate()`:
+## ℹ In argument: `statut_bis = case_when(is.na(var1) ~ FALSE, .default =
+##   statut)`.
+## Caused by error in `case_when()`:
+## ! Can&#39;t combine `..1 (right)` &lt;logical&gt; and `.default` &lt;factor&lt;3d285&gt;&gt;.</code></pre>
+<p>Le message d’erreur nous indique bien l’impossibilité pour
+<code>case_when</code> de <strong>combiner des valeurs
+booléennes</strong> (le <code>FALSE</code>) <strong>et une variable
+facteur</strong> (la variable <code>statut</code> donnant la valeur par
+défaut).</p>
+<p>À noter qu’auparavant, <code>case_when</code> sortait également une
+erreur lorsqu’on définissait des modalités caractères et une variable
+facteur par défaut. Cela n’est plus le cas depuis <a href="https://cran.r-project.org/web/packages/dplyr/news/news.html">dplyr
+1.1.0</a>, puisque <code>case_when</code> <strong>transforme
+automatiquement les variables facteur en variable caractère</strong>.
+Ainsi, le code suivant fonctionne :</p>
+<pre class="r"><code>df |&gt; mutate(
+  statut_bis = case_when(
+    is.na(var1) ~ &quot;inconnu&quot;, # modalité caractère
+    .default = statut)) |&gt; # variable facteur convertie automatiquement en caractère
+  count(statut_bis) # affichage des modalités de statut_bis</code></pre>
+<pre><code>## # A tibble: 4 × 2
+##   statut_bis     n
+##   &lt;chr&gt;      &lt;int&gt;
+## 1 inconnu        5
+## 2 ko            62
+## 3 ok            61
+## 4 &lt;NA&gt;          72</code></pre>
+</div>
+<div id="ptype-pour-créer-directement-un-facteur" class="section level2">
+<h2><code>.ptype</code> pour créer directement un facteur</h2>
+<p>Il n’est ici pas possible de <strong>définir directement un facteur
+et l’ordre de ses niveaux</strong>, à moins de le faire dans une
+nouvelle instruction dédiée. C’est là qu’entre en jeu l’argument
+<code>.ptype</code> de la fonction <code>case_when</code>. Par défaut,
+le type de la variable est en effet <strong>déduit des valeurs définies
+après les conditions</strong>. L’argument <code>ptype</code> permet
+d’imposer un type spécifique <strong>quand cela est compatible avec les
+expressions utilisées</strong>. Dans notre exemple précédent, on peut
+ainsi spécifier que l’on souhaite une variable facteur en sortie,
+<strong>à condition de bien en définir les niveaux</strong> :</p>
+<pre class="r"><code>df |&gt; mutate(
+  statut_bis = case_when(
+    is.na(var1) ~ &quot;inconnu&quot;, # modalité caractère
+    .default = statut,
+    .ptype = factor(levels = c(&quot;ok&quot;, &quot;ko&quot;, &quot;inconnu&quot;)))) |&gt; 
+  count(statut_bis) # affichage des modalités de statut_bis</code></pre>
+<pre><code>## # A tibble: 4 × 2
+##   statut_bis     n
+##   &lt;fct&gt;      &lt;int&gt;
+## 1 ok            61
+## 2 ko            62
+## 3 inconnu        5
+## 4 &lt;NA&gt;          72</code></pre>
 </div>
 </div>
 

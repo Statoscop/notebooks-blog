@@ -11,7 +11,7 @@ output:
 
 
 
-Le verbe `case_when` est un incontournable du traitement de données avec `dplyr`. Il permet de créer une variable conditionnellement à une ou plusieurs variables existantes. Sa syntaxe est très lisible et permet à votre code de rester clair. Cependant, vous avez peut-être déjà eu quelques problèmes à l'utiliser avec des variables facteurs. Dans cette note, on vous présente ce verbe bien pratique de `dplyr`, ses nouveautés et comment l'utiliser pour créer directement des variables facteurs. 
+Le verbe `case_when` est un __incontournable du traitement de données avec `dplyr`__. Il permet de créer une variable conditionnellement à une ou plusieurs variables existantes. Sa syntaxe est __très lisible et permet à votre code de rester clair__. Cependant, vous avez peut-être déjà eu quelques problèmes à l'__utiliser avec des variables facteurs__. Dans cette note, on vous présente ce verbe bien pratique de `dplyr`, ses nouveautés et comment __l'utiliser pour créer directement des variables facteurs__. 
 
 # Syntaxe de case_when dans dplyr et différences avec if_else   
 
@@ -22,7 +22,7 @@ Pour cet article, nous nous reposons sur un dataset complètement fictif qui a l
 ## tibble [200 × 4] (S3: tbl_df/tbl/data.frame)
 ##  $ id    : int [1:200] 1 2 3 4 5 6 7 8 9 10 ...
 ##  $ groupe: chr [1:200] "C" "C" "C" "B" ...
-##  $ valeur: int [1:200] NA 20 10 28 19 30 NA 22 20 20 ...
+##  $ var1  : int [1:200] NA 20 10 28 19 30 NA 22 20 20 ...
 ##  $ statut: Factor w/ 2 levels "ko","ok": NA 1 NA 1 1 2 1 NA 2 2 ...
 ```
 
@@ -30,14 +30,13 @@ Vous pouvez retrouver le code ayant servi à le générer sur [le dépôt des no
 
 Le verbe `case_when` comporte plusieurs différences avec `if_else`, mais deux nous semblent particulièrement importantes :   
 
+- sa syntaxe rend __la lecture de plusieurs conditions__ bien plus aisée    
+- par défaut, __il ne renvoie pas NA s'il croise une valeur manquante__ dans la condition  
 
-- sa syntaxe rend la lecture de plusieurs conditions bien plus aisée    
-- par défaut, il ne renvoie pas NA s'il croise une valeur manquante dans la condition  
+Pour __la première différence__, la syntaxe de `case_when` va permettre de __définir les différentes conditions__ et la valeur associée sur une ligne dédiée alors que __celle de `if_else` oblige à chaîner les appels à la fonction__. En fait, `case_when` a même été créé pour mettre de généraliser `if_else` à des multiples conditions puisqu'il est indiqué dans sa description de la page d'aide que c'est une fonction __permettant de vectoriser l'appel à plusieurs `if_else`__. Illustrons cela en codant des deux manières une variable égale à :  
 
-Pour __la première différence__, la syntaxe de `case_when` va permettre de définir les différentes conditions et la valeur associée chacune sur une ligne alors que celle de `if_else` oblige à chaîner les appels à la fonction. Illustrons cela en codant des deux manières une variable égale à :  
-
-- "cas 1" si groupe = "A" et valeur < 25 
-- "cas 2" si groupe = "B" ou "C" et valeur >= 25 
+- "cas 1" si groupe = "A" et var1 < 25 
+- "cas 2" si groupe = "B" ou "C" et var1 >= 25 
 - "cas 3" sinon
 
 Le code avec les deux syntaxes est le suivant :  
@@ -48,22 +47,22 @@ df <- df |> mutate(
   
   # syntaxe case_when
   cond_case = case_when(
-    groupe == "A" & valeur < 25 ~ "cas 1",
-    groupe %in% c("B", "C") & valeur >= 25 ~ "cas 2",
+    groupe == "A" & var1 < 25 ~ "cas 1",
+    groupe %in% c("B", "C") & var1 >= 25 ~ "cas 2",
     .default = "cas 3"),
   
   # syntaxe if_else
   cond_ifelse = if_else(
-    groupe == "A" & valeur < 25,
+    groupe == "A" & var1 < 25,
     "cas 1",
     if_else(
-      groupe %in% c("B", "C") & valeur >= 25,
+      groupe %in% c("B", "C") & var1 >= 25,
       "cas 2",
       "cas 3"))
   ) 
 ```
 
-Pour __la seconde différence__, `case_when` considère les valeurs manquantes comme une valeur à part entière alors que `if_else` renvoie automatiquement une valeur manquante s'il trouve une valeur manquante dans la condition. Si l'on observe nos deux variables on constate en effet qu'elles ne sont pas toujours égales :  
+Pour __la seconde différence__, `case_when` considère les valeurs manquantes __comme une valeur à part entière__ alors que `if_else` __renvoie automatiquement une valeur manquante__ s'il trouve une valeur manquante dans la condition. Si l'on observe nos deux variables on constate en effet qu'elles ne sont pas toujours égales :  
 
 
 ```r
@@ -72,54 +71,89 @@ df |> head(10)
 
 ```
 ## # A tibble: 10 × 6
-##       id groupe valeur statut cond_case cond_ifelse
-##    <int> <chr>   <int> <fct>  <chr>     <chr>      
-##  1     1 C          NA <NA>   cas 3     <NA>       
-##  2     2 C          20 ko     cas 3     cas 3      
-##  3     3 C          10 <NA>   cas 3     cas 3      
-##  4     4 B          28 ko     cas 2     cas 2      
-##  5     5 C          19 ko     cas 3     cas 3      
-##  6     6 B          30 ok     cas 2     cas 2      
-##  7     7 B          NA ko     cas 3     <NA>       
-##  8     8 B          22 <NA>   cas 3     cas 3      
-##  9     9 C          20 ok     cas 3     cas 3      
-## 10    10 A          20 ok     cas 1     cas 1
+##       id groupe  var1 statut cond_case cond_ifelse
+##    <int> <chr>  <int> <fct>  <chr>     <chr>      
+##  1     1 C         NA <NA>   cas 3     <NA>       
+##  2     2 C         20 ko     cas 3     cas 3      
+##  3     3 C         10 <NA>   cas 3     cas 3      
+##  4     4 B         28 ko     cas 2     cas 2      
+##  5     5 C         19 ko     cas 3     cas 3      
+##  6     6 B         30 ok     cas 2     cas 2      
+##  7     7 B         NA ko     cas 3     <NA>       
+##  8     8 B         22 <NA>   cas 3     cas 3      
+##  9     9 C         20 ok     cas 3     cas 3      
+## 10    10 A         20 ok     cas 1     cas 1
 ```
-Ainsi, __lorsque la valeur de la variable `valeur` est manquante__, la méthode `if_else` renvoie une valeur manquante alors que `case_when` lui donne la valeur "cas 3" car elle ne correspond pas aux deux premières conditions. Il faut donc __traiter explicitement les valeurs manquantes dans les conditions de `case_when` si l'on souhaite qu'elles ne soient pas prises en compte__.  
+Ainsi, __lorsque la valeur de la variable `var1` est manquante__, la méthode `if_else` renvoie une valeur manquante alors que `case_when` lui donne la valeur "cas 3" car elle ne correspond pas aux deux premières conditions. Il faut donc __traiter explicitement les valeurs manquantes dans les conditions de `case_when` si l'on souhaite qu'elles ne soient pas prises en compte__.  
 
+# Gestion des types facteur avec `case_when`   
 
+La création d'une variable avec `case_when` doit __respecter le fait que la variable créée ait un type unique__. Cela peut poser problème lorsque l'on souhaite créer directement une variable facteur.  
 
-# Gestion des types facteur avec case_when   
+## `.default` pour définir la valeur de base   
+
+Le paramètre `.default` permet de définir la valeur que prend la variable lorsqu'aucune des conditions n'est respectée. Il remplace l'utilisation de la syntaxe `.TRUE ~ valeur` depuis [dplyr 1.1.0](https://cran.r-project.org/web/packages/dplyr/news/news.html). Il peut __correspondre à une valeur__, comme dans l'exemple précédent, __ou à une variable existante__. Il faut veiller à ce que __le type de la variable corresponde bien à celui des modalités définies précédemment__. En effet, on obtient sinon l'erreur suivante :  
 
 
 
 ```r
 df |> mutate(
-  test = case_when(
-    !is.na(valeur) ~ as.numeric(valeur < 20),
-    is.na(valeur) ~ "Manquant",
-    .ptype = character()
-  )
-)
+  statut_bis = case_when(
+    is.na(var1) ~ FALSE, # modalité booléen
+    .default = statut)) # variable facteur
 ```
 
 ```
 ## Error in `mutate()`:
-## ℹ In argument: `test = case_when(...)`.
+## ℹ In argument: `statut_bis = case_when(is.na(var1) ~ FALSE, .default =
+##   statut)`.
 ## Caused by error in `case_when()`:
-## ! Can't convert `..1 (right)` <double> to <character>.
+## ! Can't combine `..1 (right)` <logical> and `.default` <factor<3d285>>.
+```
+Le message d'erreur nous indique bien l'impossibilité pour `case_when` de __combiner des valeurs booléennes__ (le `FALSE`) __et une variable facteur__ (la variable `statut` donnant la valeur par défaut).  
+
+À noter qu'auparavant, `case_when` sortait également une erreur lorsqu'on définissait des modalités caractères et une variable facteur par défaut. Cela n'est plus le cas depuis [dplyr 1.1.0](https://cran.r-project.org/web/packages/dplyr/news/news.html), puisque `case_when` __transforme automatiquement les variables facteur en variable caractère__. Ainsi, le code suivant fonctionne :  
+
+
+```r
+df |> mutate(
+  statut_bis = case_when(
+    is.na(var1) ~ "inconnu", # modalité caractère
+    .default = statut)) |> # variable facteur convertie automatiquement en caractère
+  count(statut_bis) # affichage des modalités de statut_bis
 ```
 
-
-les différentes valeurs définies doivent être du même type
-parler de la maj qui a harmonisé tout ça
-Seee [les news de dplyr](https://cran.r-project.org/web/packages/dplyr/news/news.html)  
-
+```
+## # A tibble: 4 × 2
+##   statut_bis     n
+##   <chr>      <int>
+## 1 inconnu        5
+## 2 ko            62
+## 3 ok            61
+## 4 <NA>          72
+```
 
 ## `.ptype` pour créer directement un facteur 
 
+Il n'est ici pas possible de __définir directement un facteur et l'ordre de ses niveaux__, à moins de le faire dans une nouvelle instruction dédiée. C'est là qu'entre en jeu l'argument `.ptype` de la fonction `case_when`. Par défaut, le type de la variable est en effet __déduit des valeurs définies après les conditions__. L'argument `ptype` permet d'imposer un type spécifique __quand cela est compatible avec les expressions utilisées__. Dans notre exemple précédent, on peut ainsi spécifier que l'on souhaite une variable facteur en sortie, __à condition de bien en définir les niveaux__  :  
 
 
-## `.default` pour définir la valeur de base  
+```r
+df |> mutate(
+  statut_bis = case_when(
+    is.na(var1) ~ "inconnu", # modalité caractère
+    .default = statut,
+    .ptype = factor(levels = c("ok", "ko", "inconnu")))) |> 
+  count(statut_bis) # affichage des modalités de statut_bis
+```
 
-TRUE ~ ou .default? -> cas quand le défaut est justement une variable facteur
+```
+## # A tibble: 4 × 2
+##   statut_bis     n
+##   <fct>      <int>
+## 1 ok            61
+## 2 ko            62
+## 3 inconnu        5
+## 4 <NA>          72
+```
+
