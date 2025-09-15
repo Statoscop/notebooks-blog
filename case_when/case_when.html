@@ -456,20 +456,102 @@ entière</strong> alors que <code>if_else</code> <strong>renvoie
 automatiquement une valeur manquante</strong> s’il trouve une valeur
 manquante dans la condition. Si l’on observe nos deux variables on
 constate en effet qu’elles ne sont pas toujours égales :</p>
-<pre class="r"><code>df |&gt; head(10)</code></pre>
-<pre><code>## # A tibble: 10 × 6
-##       id groupe  var1 statut cond_case cond_ifelse
-##    &lt;int&gt; &lt;chr&gt;  &lt;int&gt; &lt;fct&gt;  &lt;chr&gt;     &lt;chr&gt;      
-##  1     1 C         NA &lt;NA&gt;   cas 3     &lt;NA&gt;       
-##  2     2 C         20 ko     cas 3     cas 3      
-##  3     3 C         10 &lt;NA&gt;   cas 3     cas 3      
-##  4     4 B         28 ko     cas 2     cas 2      
-##  5     5 C         19 ko     cas 3     cas 3      
-##  6     6 B         30 ok     cas 2     cas 2      
-##  7     7 B         NA ko     cas 3     &lt;NA&gt;       
-##  8     8 B         22 &lt;NA&gt;   cas 3     cas 3      
-##  9     9 C         20 ok     cas 3     cas 3      
-## 10    10 A         20 ok     cas 1     cas 1</code></pre>
+<pre class="r"><code>df |&gt; head(10) |&gt; 
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="left">groupe</th>
+<th align="right">var1</th>
+<th align="left">statut</th>
+<th align="left">cond_case</th>
+<th align="left">cond_ifelse</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">C</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">cas 3</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">C</td>
+<td align="right">20</td>
+<td align="left">ko</td>
+<td align="left">cas 3</td>
+<td align="left">cas 3</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">C</td>
+<td align="right">10</td>
+<td align="left">NA</td>
+<td align="left">cas 3</td>
+<td align="left">cas 3</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">B</td>
+<td align="right">28</td>
+<td align="left">ko</td>
+<td align="left">cas 2</td>
+<td align="left">cas 2</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">C</td>
+<td align="right">19</td>
+<td align="left">ko</td>
+<td align="left">cas 3</td>
+<td align="left">cas 3</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">B</td>
+<td align="right">30</td>
+<td align="left">ok</td>
+<td align="left">cas 2</td>
+<td align="left">cas 2</td>
+</tr>
+<tr class="odd">
+<td align="right">7</td>
+<td align="left">B</td>
+<td align="right">NA</td>
+<td align="left">ko</td>
+<td align="left">cas 3</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="right">8</td>
+<td align="left">B</td>
+<td align="right">22</td>
+<td align="left">NA</td>
+<td align="left">cas 3</td>
+<td align="left">cas 3</td>
+</tr>
+<tr class="odd">
+<td align="right">9</td>
+<td align="left">C</td>
+<td align="right">20</td>
+<td align="left">ok</td>
+<td align="left">cas 3</td>
+<td align="left">cas 3</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="left">A</td>
+<td align="right">20</td>
+<td align="left">ok</td>
+<td align="left">cas 1</td>
+<td align="left">cas 1</td>
+</tr>
+</tbody>
+</table>
 <p>Ainsi, <strong>lorsque la valeur de la variable <code>var1</code> est
 manquante</strong>, la méthode <code>if_else</code> renvoie une valeur
 manquante alors que <code>case_when</code> lui donne la valeur “cas 3”

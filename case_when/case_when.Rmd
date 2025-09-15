@@ -80,7 +80,8 @@ La syntaxe de case_when permet de __produire un code plus lisible et aéré__. �
 Pour __la seconde différence__, `case_when` considère les valeurs manquantes __comme une valeur à part entière__ alors que `if_else` __renvoie automatiquement une valeur manquante__ s'il trouve une valeur manquante dans la condition. Si l'on observe nos deux variables on constate en effet qu'elles ne sont pas toujours égales :  
 
 ```{r}
-df |> head(10)
+df |> head(10) |> 
+  knitr::kable()
 ```
 Ainsi, __lorsque la valeur de la variable `var1` est manquante__, la méthode `if_else` renvoie une valeur manquante alors que `case_when` lui donne la valeur "cas 3" car elle ne correspond pas aux deux premières conditions. Il faut donc __traiter explicitement les valeurs manquantes dans les conditions de `case_when` si l'on souhaite qu'elles ne soient pas prises en compte__.  
 

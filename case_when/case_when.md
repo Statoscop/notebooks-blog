@@ -72,24 +72,24 @@ Pour __la seconde différence__, `case_when` considère les valeurs manquantes _
 
 
 ```r
-df |> head(10)
+df |> head(10) |> 
+  knitr::kable()
 ```
 
-```
-## # A tibble: 10 × 6
-##       id groupe  var1 statut cond_case cond_ifelse
-##    <int> <chr>  <int> <fct>  <chr>     <chr>      
-##  1     1 C         NA <NA>   cas 3     <NA>       
-##  2     2 C         20 ko     cas 3     cas 3      
-##  3     3 C         10 <NA>   cas 3     cas 3      
-##  4     4 B         28 ko     cas 2     cas 2      
-##  5     5 C         19 ko     cas 3     cas 3      
-##  6     6 B         30 ok     cas 2     cas 2      
-##  7     7 B         NA ko     cas 3     <NA>       
-##  8     8 B         22 <NA>   cas 3     cas 3      
-##  9     9 C         20 ok     cas 3     cas 3      
-## 10    10 A         20 ok     cas 1     cas 1
-```
+
+
+| id|groupe | var1|statut |cond_case |cond_ifelse |
+|--:|:------|----:|:------|:---------|:-----------|
+|  1|C      |   NA|NA     |cas 3     |NA          |
+|  2|C      |   20|ko     |cas 3     |cas 3       |
+|  3|C      |   10|NA     |cas 3     |cas 3       |
+|  4|B      |   28|ko     |cas 2     |cas 2       |
+|  5|C      |   19|ko     |cas 3     |cas 3       |
+|  6|B      |   30|ok     |cas 2     |cas 2       |
+|  7|B      |   NA|ko     |cas 3     |NA          |
+|  8|B      |   22|NA     |cas 3     |cas 3       |
+|  9|C      |   20|ok     |cas 3     |cas 3       |
+| 10|A      |   20|ok     |cas 1     |cas 1       |
 Ainsi, __lorsque la valeur de la variable `var1` est manquante__, la méthode `if_else` renvoie une valeur manquante alors que `case_when` lui donne la valeur "cas 3" car elle ne correspond pas aux deux premières conditions. Il faut donc __traiter explicitement les valeurs manquantes dans les conditions de `case_when` si l'on souhaite qu'elles ne soient pas prises en compte__.  
 
 # Gestion des types facteur avec `case_when`   
