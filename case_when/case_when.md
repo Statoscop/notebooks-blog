@@ -11,7 +11,7 @@ output:
 
 
 
-Le verbe `case_when` est un __incontournable du traitement de données avec `dplyr`__. Il permet de créer une variable conditionnellement à une ou plusieurs variables existantes. Sa syntaxe est __très lisible et permet à votre code de rester clair__. Cependant, vous avez peut-être déjà eu quelques problèmes à l'__utiliser avec des variables facteurs__. Dans cette note, on vous présente ce verbe bien pratique de `dplyr`, ses nouveautés et comment __l'utiliser pour créer directement des variables facteurs__. 
+Le verbe `case_when` est un __incontournable du traitement de données avec `dplyr`__. Il permet de créer une variable conditionnellement à une ou plusieurs variables existantes. Sa syntaxe est __très lisible et permet à votre code de rester clair__. Cependant, vous avez peut-être déjà eu quelques __problèmes de compatibilité avec les variables facteurs__. Dans cette note, on vous présente ce verbe bien pratique de `dplyr`, ses nouveautés et comment __l'utiliser pour créer directement des variables facteurs__. 
 
 # Syntaxe de case_when dans dplyr et différences avec if_else   
 
@@ -31,7 +31,9 @@ Vous pouvez retrouver le code ayant servi à le générer sur [le dépôt des no
 Le verbe `case_when` comporte plusieurs différences avec `if_else`, mais deux nous semblent particulièrement importantes :   
 
 - sa syntaxe rend __la lecture de plusieurs conditions__ bien plus aisée    
-- par défaut, __il ne renvoie pas NA s'il croise une valeur manquante__ dans la condition  
+- par défaut, __il ne renvoie pas NA s'il croise une valeur manquante__ dans la condition   
+
+## Défintion de conditions multiples 
 
 Pour __la première différence__, la syntaxe de `case_when` va permettre de __définir les différentes conditions__ et la valeur associée sur une ligne dédiée alors que __celle de `if_else` oblige à chaîner les appels à la fonction__. En fait, `case_when` a même été créé pour mettre de généraliser `if_else` à des multiples conditions puisqu'il est indiqué dans sa description de la page d'aide que c'est une fonction __permettant de vectoriser l'appel à plusieurs `if_else`__. Illustrons cela en codant des deux manières une variable égale à :  
 
@@ -61,6 +63,10 @@ df <- df |> mutate(
       "cas 3"))
   ) 
 ```
+
+La syntaxe de case_when permet de __produire un code plus lisible et aéré__. À noter que si l'on ne définissait pas de valeur par défaut explicitement, on aurait à la place des valeurs manquantes.  
+
+## Gestion des valeurs manquantes  
 
 Pour __la seconde différence__, `case_when` considère les valeurs manquantes __comme une valeur à part entière__ alors que `if_else` __renvoie automatiquement une valeur manquante__ s'il trouve une valeur manquante dans la condition. Si l'on observe nos deux variables on constate en effet qu'elles ne sont pas toujours égales :  
 
@@ -92,7 +98,7 @@ La création d'une variable avec `case_when` doit __respecter le fait que la var
 
 ## `.default` pour définir la valeur de base   
 
-Le paramètre `.default` permet de définir la valeur que prend la variable lorsqu'aucune des conditions n'est respectée. Il remplace l'utilisation de la syntaxe `.TRUE ~ valeur` depuis [dplyr 1.1.0](https://cran.r-project.org/web/packages/dplyr/news/news.html). Il peut __correspondre à une valeur__, comme dans l'exemple précédent, __ou à une variable existante__. Il faut veiller à ce que __le type de la variable corresponde bien à celui des modalités définies précédemment__. En effet, on obtient sinon l'erreur suivante :  
+Le paramètre `.default` permet de définir la valeur que prend la variable lorsqu'aucune des conditions n'est respectée. Il remplace l'utilisation de la syntaxe `.TRUE ~ valeur` [depuis dplyr 1.1.0](https://cran.r-project.org/web/packages/dplyr/news/news.html). Il peut __correspondre à une valeur__, comme dans l'exemple précédent, __ou à une variable existante__. Il faut veiller à ce que __le type de la variable corresponde bien à celui des modalités définies précédemment__. En effet, on obtient sinon l'erreur suivante :  
 
 
 
@@ -112,7 +118,7 @@ df |> mutate(
 ```
 Le message d'erreur nous indique bien l'impossibilité pour `case_when` de __combiner des valeurs booléennes__ (le `FALSE`) __et une variable facteur__ (la variable `statut` donnant la valeur par défaut).  
 
-À noter qu'auparavant, `case_when` sortait également une erreur lorsqu'on définissait des modalités caractères et une variable facteur par défaut. Cela n'est plus le cas depuis [dplyr 1.1.0](https://cran.r-project.org/web/packages/dplyr/news/news.html), puisque `case_when` __transforme automatiquement les variables facteur en variable caractère__. Ainsi, le code suivant fonctionne :  
+À noter qu'auparavant, `case_when` sortait également une erreur lorsqu'on définissait des modalités caractères et une variable facteur par défaut. Cela n'est plus le cas [depuis dplyr 1.1.0](https://cran.r-project.org/web/packages/dplyr/news/news.html), puisque `case_when` __transforme automatiquement les variables facteur en variable caractère__. Ainsi, le code suivant fonctionne :  
 
 
 ```r
@@ -156,4 +162,6 @@ df |> mutate(
 ## 3 inconnu        5
 ## 4 <NA>          72
 ```
+On a ainsi pu définir notre variable facteur avec l'ordre des niveaux voulu directement dans `case_when`.  
+
 

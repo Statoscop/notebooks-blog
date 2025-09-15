@@ -359,7 +359,13 @@ des variables facteurs</h1>
 <div id="TOC">
 <ul>
 <li><a href="#syntaxe-de-case_when-dans-dplyr-et-différences-avec-if_else" id="toc-syntaxe-de-case_when-dans-dplyr-et-différences-avec-if_else">Syntaxe
-de case_when dans dplyr et différences avec if_else</a></li>
+de case_when dans dplyr et différences avec if_else</a>
+<ul>
+<li><a href="#défintion-de-conditions-multiples" id="toc-défintion-de-conditions-multiples">Défintion de conditions
+multiples</a></li>
+<li><a href="#gestion-des-valeurs-manquantes" id="toc-gestion-des-valeurs-manquantes">Gestion des valeurs
+manquantes</a></li>
+</ul></li>
 <li><a href="#gestion-des-types-facteur-avec-case_when" id="toc-gestion-des-types-facteur-avec-case_when">Gestion des types
 facteur avec <code>case_when</code></a>
 <ul>
@@ -376,7 +382,7 @@ traitement de données avec <code>dplyr</code></strong>. Il permet de
 créer une variable conditionnellement à une ou plusieurs variables
 existantes. Sa syntaxe est <strong>très lisible et permet à votre code
 de rester clair</strong>. Cependant, vous avez peut-être déjà eu
-quelques problèmes à l’<strong>utiliser avec des variables
+quelques <strong>problèmes de compatibilité avec les variables
 facteurs</strong>. Dans cette note, on vous présente ce verbe bien
 pratique de <code>dplyr</code>, ses nouveautés et comment
 <strong>l’utiliser pour créer directement des variables
@@ -402,6 +408,8 @@ bien plus aisée<br />
 <li>par défaut, <strong>il ne renvoie pas NA s’il croise une valeur
 manquante</strong> dans la condition</li>
 </ul>
+<div id="défintion-de-conditions-multiples" class="section level2">
+<h2>Défintion de conditions multiples</h2>
 <p>Pour <strong>la première différence</strong>, la syntaxe de
 <code>case_when</code> va permettre de <strong>définir les différentes
 conditions</strong> et la valeur associée sur une ligne dédiée alors que
@@ -435,6 +443,13 @@ manières une variable égale à :</p>
       &quot;cas 2&quot;,
       &quot;cas 3&quot;))
   ) </code></pre>
+<p>La syntaxe de case_when permet de <strong>produire un code plus
+lisible et aéré</strong>. À noter que si l’on ne définissait pas de
+valeur par défaut explicitement, on aurait à la place des valeurs
+manquantes.</p>
+</div>
+<div id="gestion-des-valeurs-manquantes" class="section level2">
+<h2>Gestion des valeurs manquantes</h2>
 <p>Pour <strong>la seconde différence</strong>, <code>case_when</code>
 considère les valeurs manquantes <strong>comme une valeur à part
 entière</strong> alors que <code>if_else</code> <strong>renvoie
@@ -463,6 +478,7 @@ car elle ne correspond pas aux deux premières conditions. Il faut donc
 de <code>case_when</code> si l’on souhaite qu’elles ne soient pas prises
 en compte</strong>.</p>
 </div>
+</div>
 <div id="gestion-des-types-facteur-avec-case_when" class="section level1">
 <h1>Gestion des types facteur avec <code>case_when</code></h1>
 <p>La création d’une variable avec <code>case_when</code> doit
@@ -473,13 +489,13 @@ directement une variable facteur.</p>
 <h2><code>.default</code> pour définir la valeur de base</h2>
 <p>Le paramètre <code>.default</code> permet de définir la valeur que
 prend la variable lorsqu’aucune des conditions n’est respectée. Il
-remplace l’utilisation de la syntaxe <code>.TRUE ~ valeur</code> depuis
-<a href="https://cran.r-project.org/web/packages/dplyr/news/news.html">dplyr
-1.1.0</a>. Il peut <strong>correspondre à une valeur</strong>, comme
-dans l’exemple précédent, <strong>ou à une variable existante</strong>.
-Il faut veiller à ce que <strong>le type de la variable corresponde bien
-à celui des modalités définies précédemment</strong>. En effet, on
-obtient sinon l’erreur suivante :</p>
+remplace l’utilisation de la syntaxe <code>.TRUE ~ valeur</code> <a href="https://cran.r-project.org/web/packages/dplyr/news/news.html">depuis
+dplyr 1.1.0</a>. Il peut <strong>correspondre à une valeur</strong>,
+comme dans l’exemple précédent, <strong>ou à une variable
+existante</strong>. Il faut veiller à ce que <strong>le type de la
+variable corresponde bien à celui des modalités définies
+précédemment</strong>. En effet, on obtient sinon l’erreur suivante
+:</p>
 <pre class="r"><code>df |&gt; mutate(
   statut_bis = case_when(
     is.na(var1) ~ FALSE, # modalité booléen
@@ -496,8 +512,8 @@ facteur</strong> (la variable <code>statut</code> donnant la valeur par
 défaut).</p>
 <p>À noter qu’auparavant, <code>case_when</code> sortait également une
 erreur lorsqu’on définissait des modalités caractères et une variable
-facteur par défaut. Cela n’est plus le cas depuis <a href="https://cran.r-project.org/web/packages/dplyr/news/news.html">dplyr
-1.1.0</a>, puisque <code>case_when</code> <strong>transforme
+facteur par défaut. Cela n’est plus le cas <a href="https://cran.r-project.org/web/packages/dplyr/news/news.html">depuis
+dplyr 1.1.0</a>, puisque <code>case_when</code> <strong>transforme
 automatiquement les variables facteur en variable caractère</strong>.
 Ainsi, le code suivant fonctionne :</p>
 <pre class="r"><code>df |&gt; mutate(
@@ -538,6 +554,8 @@ ainsi spécifier que l’on souhaite une variable facteur en sortie,
 ## 2 ko            62
 ## 3 inconnu        5
 ## 4 &lt;NA&gt;          72</code></pre>
+<p>On a ainsi pu définir notre variable facteur avec l’ordre des niveaux
+voulu directement dans <code>case_when</code>.</p>
 </div>
 </div>
 
